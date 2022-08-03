@@ -59,7 +59,7 @@ function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{Variable
     return initial_swaps
 end
 
-function create_swaps(swapper, to_swap)
+function create_swaps(swapper::Swappable, to_swap::VariableRef)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
@@ -73,7 +73,7 @@ function create_swaps(swapper, to_swap)
 
 end
 
-function evalute_sweep(swapper)
+function evalute_sweep(swapper::Swappable)
     current_best = best_objective(swapper)
     to_swap = []
     for swap in swapper.completed_swaps[end]

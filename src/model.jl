@@ -10,7 +10,7 @@ function fixed_variables(model::Model)
     return [var for var in values(model.obj_dict) if is_fixed(var)]
 end
 
-function unfix!(variable)
+function unfix!(variable::VariableRef)
     try
         unfix(variable)
     catch e

@@ -7,8 +7,8 @@ mutable struct Swap
     obj_value::Real
     success::Union{Bool, Nothing}
     all_fixed::Union{Array{VariableRef}, Nothing}
-    termination_status
-    solve_time
+    termination_status::Union{String, TerminationStatusCode, Nothing}
+    solve_time::Union{Real, Nothing}
     Swap(existing::VariableRef, new::VariableRef) = new(existing, new, NaN, nothing, nothing, nothing,nothing)
 end
 
@@ -18,7 +18,7 @@ end
 
 mutable struct Swappable
     to_swap::Array{Swap}
-    consider_swapping
-    completed_swaps
+    consider_swapping::Array{VariableRef}
+    completed_swaps::Union{Array{Array{Swap}}, Nothing}
     Swappable(to_swap, to_swap_with) = new(to_swap, to_swap_with, [])
 end
