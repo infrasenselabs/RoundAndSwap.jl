@@ -16,10 +16,6 @@ model = Model(HiGHS.Optimizer)
 fix(model[:b], 1, force=true)
 fix(model[:d], 1, force=true)
 
-struct ReplaceExisting
-    existing::VariableRef
-    new::VariableRef
-end
 
 function flatten(to_flatten)
     return collect(Iterators.flatten(to_flatten))
@@ -41,18 +37,12 @@ return a.existing == b.existing && a.new == b.new
 end
 
 
-struct BestResult
-    obj_val
-    fixed_vars
-end
-
 mutable struct Swappable
     to_swap::Array{Swap}
-    current_best::Array{BestResult}
     consider_swapping
     completed_swaps
-    Swappable(to_swap, current_best::BestResult,to_swap_with) = new(to_swap, [current_best], to_swap_with, [])
-    Swappable(to_swap, current_best::Array{BestResult},to_swap_with) = new(to_swap, current_best, to_swap_with, [])
+    Swappable(to_swap, to_swap_with) = new(to_swap, to_swap_with, [])
+    Swappable(to_swap, to_swap_with) = new(to_swap, to_swap_with, [])
 end
 
 function _all_but_swapped(s::Swappable)
@@ -75,23 +65,11 @@ Base.show(io::IO,::MIME"text/plain", s::Swappable) = pprint(s)
 
 function best_objective(swapper::Swappable)
     objectives = [obj.obj_value for obj in flatten(swapper.completed_swaps) if !isnan(obj.obj_value)]
-    # All objectives should be equally best
-    # @assert all(objectives .== objectives[1])
     return maximum(objectives)
 end
 
 function best_swap(swapper::Swappable)
     filter(x-> x.obj_value == best_objective(swapper), flatten(swapper.completed_swaps))
-end
-
-function next!(swapper::Swappable)
-    if !isempty(swapper.to_swap)
-        next_val = pop!(swapper.to_swap)
-        push!(swapper.swapped, next_val)
-        return next_val
-    else
-        @info "done"
-    end
 end
 
 function successful(model::Model)
@@ -121,14 +99,6 @@ function unfix!(swapper::Swappable)
     for var in swapper.consider_swapping
         unfix!(var)
     end
-end
-
-function try_swapping!(model::Model,swapper::Swappable, to_unfix::ReplaceExisting, results::DataFrame)
-    unfix!(to_unfix.existing)
-    fix(to_unfix.new, 1, force=true)
-	try_swapping!(model, swapper,to_unfix.new,results)
-    unfix!(to_unfix.new)
-    fix(to_unfix.existing, 1, force=true)
 end
 
 function previously_tried(swapper::Swappable)
@@ -165,33 +135,9 @@ function try_swapping!(model::Model,swapper::Swappable)
     swapper.to_swap = []
 end
 
-function remove_worse_best!(swapper::Swappable)
-    swapper.current_best = [best for best in swapper.current_best if best.obj_val ≥ best_objective(swapper)]
-end
-
-function anything_better!(results, swapper, to_unfix::ReplaceExisting)
-    anything_better!(results, swapper, to_unfix.new)
-end
-
-function anything_better!(results, swapper::Swappable, to_unfix::VariableRef)
-    these_results = filter(x-> x.unfixed == to_unfix, results)
-    #! sign needs to change based on model sense
-	better_results = filter(x-> x.obj_val ≥ best_objective(swapper), these_results)
-    if !isempty(better_results)
-        swapper.current_best = [swapper.current_best; [BestResult(x.obj_val, x.fixed_vars) for x in eachrow(better_results)]]
-        remove_worse_best!(swapper)
-        to_add = [ReplaceExisting(to_unfix,new) for new in better_results.new_fix]
-        swapper.to_swap = [swapper.to_swap; to_add]
-    else
-        @info "Nothing better"
-    end
-end
-
-function Base.isequal(a::Swap, b::Swap)
-    return a.existing == b.existing && a.new == b.new
-end
 
 function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{VariableRef})
+    # would easily refactor into create swaps
     initial_swaps = []
     # can be one loop
     for existing in to_swap
@@ -233,11 +179,10 @@ end
 
 
 optimize!(model)
-current= BestResult(objective_value(model), [b,d])
 consider_swapping = [a,b,c,d]
 
 
-swapper= Swappable(initial_swaps(current.fixed_vars, consider_swapping), current, [a,b,c,d])
+swapper= Swappable(initial_swaps(fixed_variables(model), consider_swapping),  [a,b,c,d])
 
 
 for _ in 1:1
@@ -257,7 +202,7 @@ for _ in 1:1
     end
 end
 
-    swapper
+best_swap(swapper)
 
 # end
 
