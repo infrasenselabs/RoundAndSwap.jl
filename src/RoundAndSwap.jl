@@ -15,6 +15,6 @@ export successful, fixed_variables, unfix!
 # structs
 export Swap, Swappable
 # swapping
-export best_swap, previously_tried, best_objective, try_swapping!, initial_swaps, create_swaps, evalute_sweep
+export best_swap, previously_tried, best_objective, try_swapping!, initial_swaps, create_swaps, evalute_sweep, round_and_swap
 
 end # module RoundAndSwap

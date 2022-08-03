@@ -83,3 +83,23 @@ function evalute_sweep(swapper::Swappable)
     end
     return to_swap
 end
+
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
+    swapper= Swappable(initial_swaps(fixed_variables(model), consider_swapping),  consider_swapping)
+    try_swapping!(model, swapper)
+    better = evalute_sweep(swapper)
+    while !isempty(better)
+        bet = pop!(better)
+        # set to better scenario
+        unfix!(swapper)
+        fix.(bet.all_fixed, 1, force=true)
+        to_swap = setdiff(bet.all_fixed, [bet.new])
+        to_swap = to_swap[1]
+        #* for var in to_swap
+        create_swaps(swapper, to_swap)
+        try_swapping!(model, swapper)
+        better=  [better;evalute_sweep(swapper)...]
+    end
+
+    return best_swap(swapper), swapper
+end

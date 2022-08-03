@@ -18,30 +18,10 @@ fix(model[:b], 1, force=true)
 fix(model[:d], 1, force=true)
 
 
-
 optimize!(model)
+
 consider_swapping = [a,b,c,d]
-
-
-swapper= Swappable(initial_swaps(fixed_variables(model), consider_swapping),  [a,b,c,d])
-
-
-try_swapping!(model, swapper)
-better = evalute_sweep(swapper)
-while !isempty(better)
-    bet = pop!(better)
-    # set to better scenario
-    unfix!(swapper)
-    fix.(bet.all_fixed, 1, force=true)
-    to_swap = setdiff(bet.all_fixed, [bet.new])
-    to_swap = to_swap[1]
-    #* for var in to_swap
-    create_swaps(swapper, to_swap)
-    try_swapping!(model, swapper)
-    better=  [better;evalute_sweep(swapper)...]
-end
-
-_best_swap = best_swap(swapper)
+_best_swap, swapper = round_and_swap(model, consider_swapping)
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
 @test _best_swap.new == a
