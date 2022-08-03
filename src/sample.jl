@@ -21,17 +21,36 @@ struct ReplaceExisting
     new::VariableRef
 end
 
+function flatten(to_flatten)
+    return collect(Iterators.flatten(to_flatten))
+end
+
+mutable struct Swap
+    existing::VariableRef
+    new::VariableRef
+    obj_value::Real
+    success::Union{Bool, Nothing}
+    all_fixed::Union{Array{VariableRef}, Nothing}
+    termination_status
+    solve_time
+    Swap(existing::VariableRef, new::VariableRef) = new(existing, new, NaN, nothing, nothing, nothing,nothing)
+end
+
+function Base.:(==)(a::Swap, b::Swap)
+return a.existing == b.existing && a.new == b.new
+end
+
+
 struct BestResult
     obj_val
     fixed_vars
 end
 
-
 mutable struct Swappable
-    to_swap
+    to_swap::Array{Swap}
     current_best::Array{BestResult}
-    to_swap_with
-    swapped
+    consider_swapping
+    completed_swaps
     Swappable(to_swap, current_best::BestResult,to_swap_with) = new(to_swap, [current_best], to_swap_with, [])
     Swappable(to_swap, current_best::Array{BestResult},to_swap_with) = new(to_swap, current_best, to_swap_with, [])
 end
@@ -55,10 +74,14 @@ Base.show(io::IO,::MIME"text/plain", s::Swappable) = pprint(s)
 
 
 function best_objective(swapper::Swappable)
-    objectives = [obj.obj_val for obj in swapper.current_best]
+    objectives = [obj.obj_value for obj in flatten(swapper.completed_swaps) if !isnan(obj.obj_value)]
     # All objectives should be equally best
     # @assert all(objectives .== objectives[1])
     return maximum(objectives)
+end
+
+function best_swap(swapper::Swappable)
+    filter(x-> x.obj_value == best_objective(swapper), flatten(swapper.completed_swaps))
 end
 
 function next!(swapper::Swappable)
@@ -94,8 +117,10 @@ function unfix!(variable)
 	set_upper_bound(variable, 1)
 end
 
-function create_results_df()
-	return DataFrame(t_stat=[], obj_val=[], unfixed=[], new_fix = [], solve_time = [], success=[], fixed_vars = [])
+function unfix!(swapper::Swappable)
+    for var in swapper.consider_swapping
+        unfix!(var)
+    end
 end
 
 function try_swapping!(model::Model,swapper::Swappable, to_unfix::ReplaceExisting, results::DataFrame)
@@ -106,25 +131,38 @@ function try_swapping!(model::Model,swapper::Swappable, to_unfix::ReplaceExistin
     fix(to_unfix.existing, 1, force=true)
 end
 
+function previously_tried(swapper::Swappable)
+    [fixed.all_fixed for fixed in flatten(swapper.completed_swaps)]
+end
 
-function try_swapping!(model::Model,swapper::Swappable, to_unfix::VariableRef, results::DataFrame)
-    unfix!(to_unfix)
-    for new_fix in swapper.to_swap_with
-        @info "Trying $new_fix"
-        if new_fix == to_unfix || is_fixed(new_fix)
-            @info "Skipping $new_fix"
+
+function try_swapping!(model::Model,swapper::Swappable)
+    push!(swapper.completed_swaps,[])
+    for swap in swapper.to_swap
+        @info "Trying swap: $(swap.existing) -> $(swap.new)" 
+        if is_fixed(swap.new)
+            @info "$(swap.new) already fixed"
+            swap.termination_status = "fixed"
             continue
         end
-        fix(new_fix, 1, force=true)
-        optimize!(model)
-        t_stat = termination_status(model)
-        solve_time = MOI.get(model, MOI.SolveTimeSec())
-        success = successful(model)
-        obj_val = success ? objective_value(model) : NaN 
-        push!(results,[t_stat, obj_val, to_unfix, new_fix, solve_time, success, fixed_variables(model)])
-        unfix!(new_fix)
+        unfix!(swap.existing)
+        fix(swap.new, 1, force=true)
+        if fixed_variables(model) in previously_tried(swapper)
+            @info "swap $swap already done"
+            swap.termination_status = "already_done"
+        else
+            optimize!(model)
+            swap.termination_status = termination_status(model)
+            swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
+            swap.success = successful(model)
+            swap.obj_value = swap.success ? objective_value(model) : NaN 
+            swap.all_fixed = fixed_variables(model)
+        end
+        unfix!(swap.new)
+        fix(swap.existing, 1, force=true)
     end
-    fix(to_unfix, 1, force=true)
+    swapper.completed_swaps[end] = swapper.to_swap
+    swapper.to_swap = []
 end
 
 function remove_worse_best!(swapper::Swappable)
@@ -149,17 +187,76 @@ function anything_better!(results, swapper::Swappable, to_unfix::VariableRef)
     end
 end
 
-results = create_results_df()
+function Base.isequal(a::Swap, b::Swap)
+    return a.existing == b.existing && a.new == b.new
+end
+
+function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{VariableRef})
+    initial_swaps = []
+    # can be one loop
+    for existing in to_swap
+        for new in to_swap_with
+            if existing == new
+                continue
+            end
+            push!(initial_swaps, Swap(existing, new))
+        end
+    end
+    return initial_swaps
+end
+
+function create_swaps(swapper, to_swap)
+    for to_consider in swapper.consider_swapping
+        if to_consider == to_swap
+            continue
+        end
+        _new_swap = Swap(to_swap, to_consider)
+        if _new_swap in swapper.completed_swaps
+            continue
+        end
+        push!(swapper.to_swap, _new_swap)
+    end
+
+end
+
+function evalute_sweep(swapper)
+    current_best = best_objective(swapper)
+    to_swap = []
+    for swap in swapper.completed_swaps[end]
+        if swap.obj_value ≥ current_best
+            push!(to_swap, swap)
+        end
+    end
+    return to_swap
+end
+
+
+
 optimize!(model)
 current= BestResult(objective_value(model), [b,d])
+consider_swapping = [a,b,c,d]
 
-swapper= Swappable(current.fixed_vars, current, [a,b,c,d])
 
-# for _ in 1:5
-    next_val = next!(swapper)
-    to_unfix= next_val
-    try_swapping!(model, swapper, next_val, results)
-    anything_better!(results, swapper, to_unfix)
+swapper= Swappable(initial_swaps(current.fixed_vars, consider_swapping), current, [a,b,c,d])
+
+
+for _ in 1:1
+    try_swapping!(model, swapper)
+    better = evalute_sweep(swapper)
+    while !isempty(better)
+        bet = pop!(better)
+        # set to better scenario
+        unfix!(swapper)
+        fix.(bet.all_fixed, 1, force=true)
+        to_swap = setdiff(bet.all_fixed, [bet.new])
+        to_swap = to_swap[1]
+        #* for var in to_swap
+        create_swaps(swapper, to_swap)
+        try_swapping!(model, swapper)
+        better=  [better;evalute_sweep(swapper)...]
+    end
+end
+
     swapper
 
 # end
