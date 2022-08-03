@@ -26,21 +26,19 @@ consider_swapping = [a,b,c,d]
 swapper= Swappable(initial_swaps(fixed_variables(model), consider_swapping),  [a,b,c,d])
 
 
-for _ in 1:1
+try_swapping!(model, swapper)
+better = evalute_sweep(swapper)
+while !isempty(better)
+    bet = pop!(better)
+    # set to better scenario
+    unfix!(swapper)
+    fix.(bet.all_fixed, 1, force=true)
+    to_swap = setdiff(bet.all_fixed, [bet.new])
+    to_swap = to_swap[1]
+    #* for var in to_swap
+    create_swaps(swapper, to_swap)
     try_swapping!(model, swapper)
-    better = evalute_sweep(swapper)
-    while !isempty(better)
-        bet = pop!(better)
-        # set to better scenario
-        unfix!(swapper)
-        fix.(bet.all_fixed, 1, force=true)
-        to_swap = setdiff(bet.all_fixed, [bet.new])
-        to_swap = to_swap[1]
-        #* for var in to_swap
-        create_swaps(swapper, to_swap)
-        try_swapping!(model, swapper)
-        better=  [better;evalute_sweep(swapper)...]
-    end
+    better=  [better;evalute_sweep(swapper)...]
 end
 
 _best_swap = best_swap(swapper)
