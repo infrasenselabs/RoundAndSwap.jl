@@ -2,7 +2,7 @@ using JuMP
 using HiGHS
 using DataFrames
 
-using PrettyPrinting: best_fit, indent, list_layout, literal, pair_layout
+using PrettyPrinting: best_fit, indent, list_layout, literal, pair_layout, pprint
 model = Model(HiGHS.Optimizer)
 @variable(model, 0 ≤  a ≤ 1)
 @variable(model, 0 ≤  b ≤ 1)
