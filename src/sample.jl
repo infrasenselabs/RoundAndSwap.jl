@@ -2,6 +2,7 @@ using JuMP
 using HiGHS
 using DataFrames
 
+using PrettyPrinting: best_fit, indent, list_layout, literal, pair_layout
 model = Model(HiGHS.Optimizer)
 @variable(model, 0 ≤  a ≤ 1)
 @variable(model, 0 ≤  b ≤ 1)
@@ -26,7 +27,14 @@ struct BestResult
 end
 
 
-using PrettyPrinting: best_fit, indent, list_layout, literal, pair_layout
+mutable struct Swappable
+    to_swap
+    current_best::Array{BestResult}
+    to_swap_with
+    swapped
+    Swappable(to_swap, current_best::BestResult,to_swap_with) = new(to_swap, [current_best], to_swap_with, [])
+    Swappable(to_swap, current_best::Array{BestResult},to_swap_with) = new(to_swap, current_best, to_swap_with, [])
+end
 
 function _all_but_swapped(s::Swappable)
     ret_val = literal("Swappable:") * literal("\n") *
@@ -45,14 +53,6 @@ tile(s::Swappable) =
 
 Base.show(io::IO,::MIME"text/plain", s::Swappable) = pprint(s)
 
-mutable struct Swappable
-    to_swap
-    current_best::Array{BestResult}
-    to_swap_with
-    swapped
-    Swappable(to_swap, current_best::BestResult,to_swap_with) = new(to_swap, [current_best], to_swap_with, [])
-    Swappable(to_swap, current_best::Array{BestResult},to_swap_with) = new(to_swap, current_best, to_swap_with, [])
-end
 
 function best_objective(swapper::Swappable)
     objectives = [obj.obj_val for obj in swapper.current_best]
