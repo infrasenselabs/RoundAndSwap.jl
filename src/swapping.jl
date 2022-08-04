@@ -16,13 +16,13 @@ function best_objective(swapper::Swappable)
         return minimum(objectives)
     end
 end
-function solve!(model, swap)
+function solve!(model, swapper, swap)
     optimize!(model)
     swap.termination_status = termination_status(model)
     swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
     swap.success = successful(model)
     swap.obj_value = swap.success ? objective_value(model) : NaN 
-    swap.all_fixed = fixed_variables(model)
+    swap.all_fixed = fixed_variables(swapper)
 end
 
 
@@ -37,11 +37,11 @@ function try_swapping!(model::Model,swapper::Swappable)
         end
         unfix!(swap.existing)
         fix(swap.new, 1, force=true)
-        if fixed_variables(model) in previously_tried(swapper)
+        if fixed_variables(swapper) in previously_tried(swapper)
             @info "swap $swap already done"
             swap.termination_status = "already_done"
         else
-            solve!(model, swap)
+            solve!(model, swapper, swap)
         end
         unfix!(swap.new)
         fix(swap.existing, 1, force=true)
@@ -95,9 +95,9 @@ function evalute_sweep(swapper::Swappable)
 end
 
 function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
-    swapper= Swappable(initial_swaps(fixed_variables(model), consider_swapping),  consider_swapping, model)
+    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model)
     init_swap = Swap(nothing, nothing)
-    solve!(model, init_swap)
+    solve!(model, swapper, init_swap)
     push!(swapper.completed_swaps,[])
     swapper.completed_swaps[end] = [init_swap]
     try_swapping!(model, swapper)

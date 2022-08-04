@@ -6,8 +6,12 @@ function successful(model::Model)
     return (termination_status(model) in acceptable_status) ? true : false
 end
 
-function fixed_variables(model::Model)
-    return [var for var in values(model.obj_dict) if is_fixed(var)]
+function fixed_variables(swapper::Swappable)
+    return fixed_variables(swapper.consider_swapping)
+end
+
+function fixed_variables(consider_swapping::Array{VariableRef})
+    return [var for var in consider_swapping if is_fixed(var)]
 end
 
 function unfix!(variable::VariableRef)
