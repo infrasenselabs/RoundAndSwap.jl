@@ -33,16 +33,16 @@ function try_swapping!(model::Model,swapper::Swappable)
     num_success = 0
     num_failed = 0
     for swap in swapper.to_swap
-        @info "Trying swap: $(swap.existing) -> $(swap.new)" 
+        @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
         if is_fixed(swap.new)
-            @info "$(swap.new) already fixed"
+            @debug "$(swap.new) already fixed"
             swap.termination_status = "fixed"
             continue
         end
         unfix!(swap.existing)
         fix(swap.new, 1, force=true)
         if fixed_variables(swapper) in previously_tried(swapper)
-            @info "swap $swap already done"
+            @debug "swap $swap already done"
             swap.termination_status = "already_done"
         else
             solve!(model, swapper, swap)

@@ -19,7 +19,7 @@ function unfix!(variable::VariableRef)
         unfix(variable)
     catch e
         if !is_fixed(variable)
-            @info  "$variable is not fixed"
+            @debug  "$variable is not fixed"
         else
             throw(error(e))
         end
