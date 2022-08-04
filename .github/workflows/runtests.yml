@@ -8,10 +8,22 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        julia-version: ['1', '1.6', '1.7', 'nightly']
-        julia-arch: [x64]
-        os: [macOS-latest , ubuntu-latest, windows-latest]
-
+        include:
+          - version: '1'  #
+            os: ubuntu-latest
+            arch: x64
+          - version: '1'  
+            os: windows-latest
+            arch: x64
+          - version: '1'
+            os: macOS-latest
+            arch: x64
+          - version: '1.6'  
+            os: ubuntu-latest
+            arch: x64
+          - version: '1.6'  
+            os: ubuntu-latest
+            arch: x86
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
