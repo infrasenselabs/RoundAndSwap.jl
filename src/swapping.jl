@@ -1,4 +1,5 @@
 using JuMP
+using ProgressMeter
 
 function best_swap(swapper::Swappable)
     filter(x-> x.obj_value == best_objective(swapper), flatten(swapper.completed_swaps))
@@ -28,6 +29,9 @@ end
 
 function try_swapping!(model::Model,swapper::Swappable)
     push!(swapper.completed_swaps,[])
+    p = Progress(length(swapper.to_swap))
+    num_success = 0
+    num_failed = 0
     for swap in swapper.to_swap
         @info "Trying swap: $(swap.existing) -> $(swap.new)" 
         if is_fixed(swap.new)
@@ -43,8 +47,14 @@ function try_swapping!(model::Model,swapper::Swappable)
         else
             solve!(model, swapper, swap)
         end
+        if swap.success isa Bool && swap.success
+            num_success += 1
+        else
+            num_failed += 1
+        end
         unfix!(swap.new)
         fix(swap.existing, 1, force=true)
+        ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap
     swapper.to_swap = []
