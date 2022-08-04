@@ -1,5 +1,6 @@
 # RoundAndSwap
 
+[![Run tests](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg)](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml)
 
 `RoundAndSwap` is a library for implementing the Round and Swap algorithm to try and find an intial solution.
 
