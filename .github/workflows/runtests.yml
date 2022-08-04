@@ -7,9 +7,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - version: '1'  #
+          - version: '1' 
             os: ubuntu-latest
             arch: x64
           - version: '1'  
