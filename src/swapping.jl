@@ -6,7 +6,7 @@ function best_swap(swapper::Swappable)
 end
 
 function previously_tried(swapper::Swappable)
-    [fixed.all_fixed for fixed in flatten(swapper.completed_swaps)]
+    [Set(fixed.all_fixed) for fixed in flatten(swapper.completed_swaps) if fixed.all_fixed!==nothing]
 end
 
 function best_objective(swapper::Swappable)
@@ -41,8 +41,9 @@ function try_swapping!(model::Model,swapper::Swappable)
         end
         unfix!(swap.existing)
         fix(swap.new, 1, force=true)
-        if fixed_variables(swapper) in previously_tried(swapper)
+        if Set(fixed_variables(swapper)) in previously_tried(swapper)
             @debug "swap $swap already done"
+            swap.all_fixed =fixed_variables(swapper)
             swap.termination_status = "already_done"
         else
             solve!(model, swapper, swap)
