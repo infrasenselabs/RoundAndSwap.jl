@@ -2,8 +2,12 @@
 using JuMP
 
 function successful(model::Model)
+    return successful(termination_status(model))
+end
+
+function successful(t_stat:: TerminationStatusCode)
     acceptable_status = [OPTIMAL, LOCALLY_SOLVED, ALMOST_OPTIMAL, ALMOST_LOCALLY_SOLVED]
-    return (termination_status(model) in acceptable_status) ? true : false
+    return (t_stat in acceptable_status) ? true : false
 end
 
 function fixed_variables(swapper::Swappable)
