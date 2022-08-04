@@ -24,3 +24,22 @@ mutable struct Swappable
     Swappable(to_swap, to_swap_with, model) = new(to_swap, to_swap_with, [], objective_sense(model))
 end
 
+""" Get a list of swaps which actually ran"""
+function _completed_swaps(swapper::Swappable)
+    return [s for s in flatten(swapper.completed_swaps) if !isnothing(s.success)]
+end
+
+function successful_swaps(swapper::Swappable)
+    return [s for s in _completed_swaps(swapper) if s.success]
+end
+function unsuccessful_swaps(swapper::Swappable)
+    return [s for s in _completed_swaps(swapper) if !s.success]
+end
+
+function num_swaps(swapper::Swappable)
+    return length(_completed_swaps(swapper))
+end
+
+function total_optimisation_time(swapper::Swappable)
+    return print("Optimisations ran for: " * string(round(sum([s.solve_time for s in _completed_swaps(swapper)]),digits=2)) * " seconds")
+end
