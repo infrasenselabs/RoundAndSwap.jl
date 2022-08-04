@@ -55,3 +55,10 @@ _best_swap = _best_swap[1]
 @test length(swapper.to_swap) == 0
 @test length(swapper.completed_swaps) == 3
 @test length(flatten(swapper.completed_swaps)) == 10
+
+@test swapper.completed_swaps[1] == swapper.completed_swaps[1]
+@test length(successful_swaps(swapper)) == 6
+@test length(unsuccessful_swaps(swapper)) == 0
+@test length(num_swaps(swapper)) == 0
+# Print functions, check they don't error
+@test total_optimisation_time(swapper)
