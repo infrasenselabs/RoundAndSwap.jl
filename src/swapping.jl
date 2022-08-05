@@ -55,6 +55,10 @@ function try_swapping!(model::Model,swapper::Swappable)
         end
         unfix!(swap.new)
         fix(swap.existing, 1, force=true)
+        if length(previously_tried(swapper)) > swapper.max_swaps
+            @info "max swaps reached"
+            break
+        end
         ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap
@@ -105,8 +109,8 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
-    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model)
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf)
+    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model, max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
     solve!(model, swapper, init_swap)
     push!(swapper.completed_swaps,[])
@@ -123,6 +127,10 @@ function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
         #* for var in to_swap
         create_swaps(swapper, to_swap)
         try_swapping!(model, swapper)
+        if length(previously_tried(swapper)) > swapper.max_swaps
+            @info "max swaps reached"
+            break
+        end
         better=  [better;evalute_sweep(swapper)...]
     end
 
