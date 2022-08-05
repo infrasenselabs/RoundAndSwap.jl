@@ -134,6 +134,6 @@ function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max
         end
         better=  [better;evalute_sweep(swapper)...]
     end
-
+    @info ("After $(total_optimisation_time(swapper)) seconds, found a solution with an objective value of $(best_objective(swapper))")
     return best_swap(swapper), swapper
 end
