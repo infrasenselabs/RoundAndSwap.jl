@@ -64,7 +64,7 @@ _best_swap = _best_swap[1]
 @test total_optimisation_time(swapper) == nothing
 
 
-_best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 5)
+_best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 2)
 
 # First "swap" is with the initial values
-@test num_swaps(swapper) == 6
+@test num_swaps(swapper) == 3

@@ -33,6 +33,11 @@ function try_swapping!(model::Model,swapper::Swappable)
     num_success = 0
     num_failed = 0
     for swap in swapper.to_swap
+        swapper.number_of_swaps += 1
+        if swapper.number_of_swaps > swapper.max_swaps
+            @info "max swaps reached"
+            break
+        end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
         if is_fixed(swap.new)
             @debug "$(swap.new) already fixed"
@@ -55,10 +60,6 @@ function try_swapping!(model::Model,swapper::Swappable)
         end
         unfix!(swap.new)
         fix(swap.existing, 1, force=true)
-        if length(previously_tried(swapper)) > swapper.max_swaps
-            @info "max swaps reached"
-            break
-        end
         ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap
@@ -127,7 +128,7 @@ function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max
         #* for var in to_swap
         create_swaps(swapper, to_swap)
         try_swapping!(model, swapper)
-        if length(previously_tried(swapper)) > swapper.max_swaps
+        if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
             break
         end
