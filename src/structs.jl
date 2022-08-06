@@ -21,7 +21,9 @@ mutable struct Swappable
     consider_swapping::Array{VariableRef}
     completed_swaps::Union{Array{Array{Swap}}, Nothing}
     sense::OptimizationSense
-    Swappable(to_swap, to_swap_with, model) = new(to_swap, to_swap_with, [], objective_sense(model))
+    max_swaps::Real # Real to allow Inf
+    number_of_swaps::Int
+    Swappable(to_swap, to_swap_with, model; max_swaps) = new(to_swap, to_swap_with, [], objective_sense(model), max_swaps, 0)
 end
 
 """ Get a list of swaps which actually ran"""

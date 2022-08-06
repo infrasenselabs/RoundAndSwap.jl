@@ -33,6 +33,11 @@ function try_swapping!(model::Model,swapper::Swappable)
     num_success = 0
     num_failed = 0
     for swap in swapper.to_swap
+        swapper.number_of_swaps += 1
+        if swapper.number_of_swaps > swapper.max_swaps
+            @info "max swaps reached"
+            break
+        end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
         if is_fixed(swap.new)
             @debug "$(swap.new) already fixed"
@@ -105,8 +110,8 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
-    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model)
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf)
+    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model, max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
     solve!(model, swapper, init_swap)
     push!(swapper.completed_swaps,[])
@@ -123,8 +128,12 @@ function round_and_swap(model::Model, consider_swapping::Array{VariableRef})
         #* for var in to_swap
         create_swaps(swapper, to_swap)
         try_swapping!(model, swapper)
+        if swapper.number_of_swaps > swapper.max_swaps
+            @info "max swaps reached"
+            break
+        end
         better=  [better;evalute_sweep(swapper)...]
     end
-
+    @info ("After $(total_optimisation_time(swapper)) seconds, found a solution with an objective value of $(best_objective(swapper))")
     return best_swap(swapper), swapper
 end
