@@ -21,3 +21,8 @@
 
 
 See the `tests/runtests.jl` for an example of how to use this library.
+
+
+## Performance
+
+In testing I've done 536 swaps with `round_and_swap` taking 174.1 seconds with 172.8 seconds of that being in the optimizer, giving `RoundAndSwap.jl` an overhead of 0.75%.  
