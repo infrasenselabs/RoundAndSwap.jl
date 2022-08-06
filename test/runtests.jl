@@ -25,9 +25,9 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
-@test _best_swap.new == a
-@test _best_swap.existing == b
-@test _best_swap.all_fixed == [a,c]
+@test _best_swap.new == :a
+@test _best_swap.existing == :b
+@test _best_swap.all_fixed == [:a,:c]
 @test _best_swap.obj_value == 10
 @test _best_swap.success == true
 @test _best_swap.termination_status == OPTIMAL
@@ -44,10 +44,10 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
-@test _best_swap.new == d
-@test _best_swap.existing == a
-@test _best_swap.all_fixed[1] in [b,d]
-@test _best_swap.all_fixed[2] in [b,d]
+@test _best_swap.new == :d
+@test _best_swap.existing == :a
+@test _best_swap.all_fixed[1] in [:b,:d]
+@test _best_swap.all_fixed[2] in [:b,:d]
 @test length(_best_swap.all_fixed) ==2
 @test _best_swap.obj_value == 4
 @test _best_swap.success == true
