@@ -27,12 +27,14 @@ function solve!(model, swapper, swap)
 end
 
 
-function try_swapping!(model::Model,swapper::Swappable)
+function try_swapping!(models::Array{Model},swapper::Swappable)
     push!(swapper.completed_swaps,[])
     p = Progress(length(swapper.to_swap))
     num_success = 0
     num_failed = 0
+
     for swap in swapper.to_swap
+        model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
@@ -110,28 +112,41 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf)
-    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model, max_swaps= max_swaps)
+
+
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf, multi_thread=false, optimizer=nothing)
+    models = make_models(model, multi_thread,optimizer)
+    consider_swapping = [Symbol(v) for v in consider_swapping]
+
+    swapper= Swappable(initial_swaps(fixed_variables(models[1],consider_swapping), consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
-    solve!(model, swapper, init_swap)
+
+
+    solve!(models[1], swapper, init_swap)
     push!(swapper.completed_swaps,[])
     swapper.completed_swaps[end] = [init_swap]
-    try_swapping!(model, swapper)
+    try_swapping!(models, swapper)
     better = evalute_sweep(swapper)
     while !isempty(better)
         bet = pop!(better)
         # set to better scenario
-        unfix!(swapper)
-        fix.(bet.all_fixed, 1, force=true)
+        unfix!(models, swapper)
+        fix!(models, bet.all_fixed)
         to_swap = setdiff(bet.all_fixed, [bet.new])
         to_swap = to_swap[1]
         #* for var in to_swap
         create_swaps(swapper, to_swap)
-        try_swapping!(model, swapper)
+        try_swapping!(models, swapper)
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
             break
         end
+        # ! if none left we get an error
+        # if isempty(to_swap)
+        #     @warn to_swap
+        #     continue
+        # end
+        
         better=  [better;evalute_sweep(swapper)...]
     end
     @info ("After $(total_optimisation_time(swapper)) seconds, found a solution with an objective value of $(best_objective(swapper))")
