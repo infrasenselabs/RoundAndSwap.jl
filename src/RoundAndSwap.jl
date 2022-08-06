@@ -9,7 +9,7 @@ include("printing.jl")
 # misc
 export flatten
 # model
-export successful, fixed_variables, unfix!
+export successful, fixed_variables, unfix!, make_models, fix!
 # printing
 
 # structs
