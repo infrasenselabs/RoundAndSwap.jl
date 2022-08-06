@@ -10,12 +10,12 @@ function successful(t_stat:: TerminationStatusCode)
     return (t_stat in acceptable_status) ? true : false
 end
 
-function fixed_variables(swapper::Swappable)
-    return fixed_variables(swapper.consider_swapping)
+function fixed_variables(model::Model, swapper::Swappable)
+    return fixed_variables(model, swapper.consider_swapping)
 end
 
-function fixed_variables(consider_swapping::Array{VariableRef})
-    return [var for var in consider_swapping if is_fixed(var)]
+function fixed_variables(model::Model, consider_swapping::Array{Symbol})
+    return [var for var in consider_swapping if is_fixed(model[var])]
 end
 
 function unfix!(variable::VariableRef)
@@ -36,4 +36,18 @@ function unfix!(swapper::Swappable)
     for var in swapper.consider_swapping
         unfix!(var)
     end
+end
+
+function unfix!(models::Array{Model}, swapper::Swappable)
+    for model in models for var in swapper.consider_swapping
+        unfix!(model[var])
+    end
+end
+end
+    
+function fix!(models::Array{Model}, to_fix::Array{Symbol}, value =1 )
+    for model in models for var in to_fix
+        fix(model[var], value, force=true)
+    end
+end
 end

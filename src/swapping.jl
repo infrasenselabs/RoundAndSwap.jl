@@ -23,7 +23,7 @@ function solve!(model, swapper, swap)
     swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
     swap.success = successful(model)
     swap.obj_value = swap.success ? objective_value(model) : NaN 
-    swap.all_fixed = fixed_variables(swapper)
+    swap.all_fixed = fixed_variables(model, swapper)
 end
 
 
@@ -39,16 +39,16 @@ function try_swapping!(model::Model,swapper::Swappable)
             break
         end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
-        if is_fixed(swap.new)
+        if is_fixed(model[swap.new])
             @debug "$(swap.new) already fixed"
             swap.termination_status = "fixed"
             continue
         end
-        unfix!(swap.existing)
-        fix(swap.new, 1, force=true)
-        if Set(fixed_variables(swapper)) in previously_tried(swapper)
+        unfix!(model[swap.existing])
+        fix(model[swap.new], 1, force=true)
+        if Set(fixed_variables(model, swapper)) in previously_tried(swapper)
             @debug "swap $swap already done"
-            swap.all_fixed =fixed_variables(swapper)
+            swap.all_fixed =fixed_variables(model, swapper)
             swap.termination_status = "already_done"
         else
             solve!(model, swapper, swap)
@@ -58,8 +58,8 @@ function try_swapping!(model::Model,swapper::Swappable)
         else
             num_failed += 1
         end
-        unfix!(swap.new)
-        fix(swap.existing, 1, force=true)
+        unfix!(model[swap.new])
+        fix(model[swap.existing], 1, force=true)
         ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap
@@ -68,7 +68,7 @@ end
 
 
 
-function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{VariableRef})
+function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
     # would easily refactor into create swaps
     initial_swaps = []
     # can be one loop
@@ -83,7 +83,7 @@ function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{Variable
     return initial_swaps
 end
 
-function create_swaps(swapper::Swappable, to_swap::VariableRef)
+function create_swaps(swapper::Swappable, to_swap::Symbol)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
