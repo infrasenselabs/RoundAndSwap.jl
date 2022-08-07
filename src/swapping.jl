@@ -112,13 +112,20 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
-
-
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer=nothing)
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf)
     models = make_models(model,optimizer)
-    consider_swapping = [Symbol(v) for v in consider_swapping]
+    return round_and_swap(models, consider_swapping,optimizer=optimizer, max_swaps=max_swaps)
+end
 
-    swapper= Swappable(initial_swaps(fixed_variables(models[1],consider_swapping), consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
+
+
+function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer=nothing)
+    consider_swapping = [Symbol(v) for v in consider_swapping]
+    initial_fixed = fixed_variables(models[1],consider_swapping)
+    if isempty(initial_fixed)
+        error("Some variables in consider_swapping must be fixed initially")
+    end
+    swapper= Swappable(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
 
 
