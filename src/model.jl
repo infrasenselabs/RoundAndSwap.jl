@@ -61,11 +61,7 @@ function fix!(models::Array{Model}, to_fix::Array{Symbol}, value =1 )
 end
 end
 
-function make_models(model::Model, multi_thread::Bool, optimizer::Union{Nothing, DataType}=nothing)
-    if !multi_thread
-        return [model]
-    end
-
+function make_models(model::Model, optimizer::Union{Nothing, DataType}=nothing)
     optimizer = !isnothing(optimizer) ? optimizer : solver_dict[solver_name(model)]
     _models = [copy(model) for _ in 1:Threads.nthreads()]
     [MOI.set(_models[ii], MOI.Name(), "Model for thread: $ii") for ii in 1:Threads.nthreads()]

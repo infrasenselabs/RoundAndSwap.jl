@@ -33,7 +33,7 @@ function try_swapping!(models::Array{Model},swapper::Swappable)
     num_success = 0
     num_failed = 0
 
-    for swap in swapper.to_swap
+    Threads.@threads for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
         if swapper.number_of_swaps > swapper.max_swaps
@@ -114,8 +114,8 @@ end
 
 
 
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf, multi_thread=false, optimizer=nothing)
-    models = make_models(model, multi_thread,optimizer)
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer=nothing)
+    models = make_models(model,optimizer)
     consider_swapping = [Symbol(v) for v in consider_swapping]
 
     swapper= Swappable(initial_swaps(fixed_variables(models[1],consider_swapping), consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
