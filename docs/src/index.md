@@ -3,14 +3,13 @@
 Documentation for RoundAndSwap.jl
 
 ```@contents
+Pages = ["nomenclature.md"]
 ```
-
-## Functions
-
-```@docs
-successful_swaps
-```
-
 ## Index
 ```@index
+```
+## Functions
+
+```@autodocs
+Modules = [RoundAndSwap]
 ```
