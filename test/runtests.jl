@@ -74,4 +74,4 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 @test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]
 
 
-@test model[[:c,:b]] = c, b
+@test model[[:c,:b]] == [c, b]
