@@ -41,13 +41,13 @@ function try_swapping!(models::Array{Model},swapper::Swappable)
             break
         end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
-        if is_fixed(model[swap.new])
+        if is_fixed(get_var(model,swap.new))
             @debug "$(swap.new) already fixed"
             swap.termination_status = "fixed"
             continue
         end
-        unfix!(model[swap.existing])
-        fix(model[swap.new], 1, force=true)
+        unfix!(get_var(model,swap.existing))
+        fix(get_var(model,swap.new), 1, force=true)
         if Set(fixed_variables(model, swapper)) in previously_tried(swapper)
             @debug "swap $swap already done"
             swap.all_fixed =fixed_variables(model, swapper)
@@ -60,8 +60,8 @@ function try_swapping!(models::Array{Model},swapper::Swappable)
         else
             num_failed += 1
         end
-        unfix!(model[swap.new])
-        fix(model[swap.existing], 1, force=true)
+        unfix!(get_var(model,swap.new))
+        fix(get_var(model,swap.existing), 1, force=true)
         ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap

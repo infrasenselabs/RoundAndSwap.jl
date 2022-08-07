@@ -6,14 +6,14 @@ using RoundAndSwap
 
 model = Model(HiGHS.Optimizer)
 set_silent(model)
-@variable(model, 0 ≤  a ≤ 1)
+@variable(model, 0 ≤  a[1:3] ≤ 1)
 @variable(model, 0 ≤  b ≤ 1)
 @variable(model, 0 ≤  c ≤ 1)
 @variable(model, 0 ≤  d ≤ 1)
 
-@objective(model, Max, (a+b)+(2*(b+c))+(3*(c-d))+(4*(d+a)))
+@objective(model, Max, (a[1]+b)+(2*(b+c))+(3*(c-d))+(4*(d+a[1])))
 
-@constraint(model, a+b+c+d == 2)
+@constraint(model, a[1]+b+c+d == 2)
 
 fix(model[:b], 1, force=true)
 fix(model[:d], 1, force=true)
@@ -21,14 +21,14 @@ fix(model[:d], 1, force=true)
 
 optimize!(model)
 
-consider_swapping = [a,b,c,d]
+consider_swapping = [a[1],b,c,d]
 _best_swap, swapper = round_and_swap(model, consider_swapping)
 
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
-@test _best_swap.new == :a
+@test _best_swap.new == Symbol("a[1]")
 @test _best_swap.existing == :b
-@test _best_swap.all_fixed == [:a,:c]
+@test _best_swap.all_fixed == [Symbol("a[1]"),:c]
 @test _best_swap.obj_value == 10
 @test _best_swap.success == true
 @test _best_swap.termination_status == OPTIMAL
@@ -37,9 +37,9 @@ _best_swap = _best_swap[1]
 @test num_swaps(swapper) == 6
 
 
-@objective(model, Min, (a+b)+(2*(b+c))+(3*(c-d))+(4*(d+a)))
+@objective(model, Min, (a[1]+b)+(2*(b+c))+(3*(c-d))+(4*(d+a[1])))
 
-@constraint(model, a+b+c+d == 2)
+@constraint(model, a[1]+b+c+d == 2)
 
 _best_swap, swapper = round_and_swap(model, consider_swapping)
 
