@@ -38,6 +38,10 @@ function unsuccessful_swaps(swapper::Swappable)
     return [s for s in _completed_swaps(swapper) if !s.success]
 end
 
+function status_codes(swapper::Swappable)
+    return [s.termination_status for s in _completed_swaps(swapper)]
+end
+
 function num_swaps(swapper::Swappable)
     return length(_completed_swaps(swapper))
 end

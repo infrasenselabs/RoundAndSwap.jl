@@ -68,3 +68,8 @@ _best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 2)
 
 # First "swap" is with the initial values
 @test num_swaps(swapper) == 3
+
+@constraint(model, a+b+c+d == 1)
+_best_swap, swapper = round_and_swap(model, consider_swapping)
+@test _best_swap === NaN
+@test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]

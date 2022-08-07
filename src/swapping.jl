@@ -126,6 +126,10 @@ function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max
     push!(swapper.completed_swaps,[])
     swapper.completed_swaps[end] = [init_swap]
     try_swapping!(models, swapper)
+    if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
+        @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
+        return NaN, swapper
+    end
     better = evalute_sweep(swapper)
     while !isempty(better)
         bet = pop!(better)
