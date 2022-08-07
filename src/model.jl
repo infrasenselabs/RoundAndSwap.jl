@@ -51,12 +51,6 @@ function unfix!(variable::VariableRef)
 	set_upper_bound(variable, 1)
 end
 
-function unfix!(swapper::Swapper)
-    for var in swapper.consider_swapping
-        unfix!(var)
-    end
-end
-
 function unfix!(models::Array{Model}, swapper::Swapper)
     for model in models for var in swapper.consider_swapping
         unfix!(get_var(model,var))
