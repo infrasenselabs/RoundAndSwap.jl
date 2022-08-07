@@ -3,3 +3,5 @@ Manifest.toml
 
 .ignore.jl
 _logo/*
+
+.DS_Store
