@@ -72,3 +72,6 @@ _best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 2)
 _best_swap, swapper = round_and_swap(model, consider_swapping)
 @test _best_swap === NaN
 @test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]
+
+
+@test model[[:c,:b]] = c, b
