@@ -2,4 +2,8 @@
 Manifest.toml
 
 .ignore.jl
-_logo
+_logo/*
+
+.DS_Store
+
+build/

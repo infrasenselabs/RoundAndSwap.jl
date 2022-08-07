@@ -1,15 +1,30 @@
 using JuMP
 using ProgressMeter
 
-function best_swap(swapper::Swappable)
+"""
+    best_swap(swapper::Swapper)
+
+Return the best swap in the swapper
+"""
+function best_swap(swapper::Swapper)
     filter(x-> x.obj_value == best_objective(swapper), flatten(swapper.completed_swaps))
 end
 
-function previously_tried(swapper::Swappable)
+"""
+    previously_tried(swapper::Swapper)
+
+Get a list of all previously stried fixed variables in swapper.consider_swapping
+"""
+function previously_tried(swapper::Swapper)
     [Set(fixed.all_fixed) for fixed in flatten(swapper.completed_swaps) if fixed.all_fixed!==nothing]
 end
 
-function best_objective(swapper::Swappable)
+"""
+    best_objective(swapper::Swapper)
+
+Get the best objective value in swapper.completed_swaps
+"""
+function best_objective(swapper::Swapper)
     objectives = [obj.obj_value for obj in flatten(swapper.completed_swaps) if !isnan(obj.obj_value)]
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
@@ -17,6 +32,16 @@ function best_objective(swapper::Swappable)
         return minimum(objectives)
     end
 end
+"""
+    solve!(model, swapper, swap)
+
+Solve this swap
+
+# Arguments:
+- `model`: A model object
+- `swapper`: The swapper being used
+- `swap`: Which swap to solve
+"""
 function solve!(model, swapper, swap)
     optimize!(model)
     swap.termination_status = termination_status(model)
@@ -27,7 +52,12 @@ function solve!(model, swapper, swap)
 end
 
 
-function try_swapping!(models::Array{Model},swapper::Swappable)
+"""
+    try_swapping!(models::Array{Model}, swapper::Swapper)
+
+Given a model and the swapper, try all swaps in swapper.to_swap
+"""
+function try_swapping!(models::Array{Model},swapper::Swapper)
     push!(swapper.completed_swaps,[])
     p = Progress(length(swapper.to_swap))
     num_success = 0
@@ -70,6 +100,11 @@ end
 
 
 
+"""
+    initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
+
+Given the initial state, create a list of initial swaps
+"""
 function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
     # would easily refactor into create swaps
     initial_swaps = []
@@ -85,7 +120,12 @@ function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
     return initial_swaps
 end
 
-function create_swaps(swapper::Swappable, to_swap::Symbol)
+"""
+    create_swaps(swapper::Swapper, to_swap::Symbol)
+
+Given the previously completed swaps, create a list of new swaps
+"""
+function create_swaps(swapper::Swapper, to_swap::Symbol)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
@@ -99,7 +139,12 @@ function create_swaps(swapper::Swappable, to_swap::Symbol)
 
 end
 
-function evalute_sweep(swapper::Swappable)
+"""
+    evalute_sweep(swapper::Swapper)
+
+After complete a sweep, find which swaps improved the existing best objective and use this to create new swaps
+"""
+function evalute_sweep(swapper::Swapper)
     current_best = best_objective(swapper)
     to_swap = []
     for swap in swapper.completed_swaps[end]
@@ -112,6 +157,17 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
+"""
+    round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer = nothing, max_swaps = Inf)
+
+Given a model and a list of variables swap the integer values to improve the objective function
+
+# Arguments:
+- `models`: An array of models, one for each thread
+- `consider_swapping`: An array of variables to consider swapping
+- `optimizer`: A specific optimizer to use, if the desired is not in [Gurobi, Ipopt, HiGHS]
+- `max_swaps`: The maximum number of swaps, default is Inf
+"""
 function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf)
     models = make_models(model,optimizer)
     return round_and_swap(models, consider_swapping,optimizer=optimizer, max_swaps=max_swaps)
@@ -119,13 +175,23 @@ end
 
 
 
-function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer=nothing)
+"""
+    round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer = nothing)
+
+Given a model and a list of variables swap the integer values to improve the objective function
+
+# Arguments:
+- `models`: An array of models, one for each thread
+- `consider_swapping`: An array of variables to consider swapping
+- `max_swaps`: The maximum number of swaps, default is Inf
+"""
+function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf)
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1],consider_swapping)
     if isempty(initial_fixed)
         error("Some variables in consider_swapping must be fixed initially")
     end
-    swapper= Swappable(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
+    swapper= Swapper(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
 
 
@@ -148,10 +214,6 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
         #* for var in to_swap
         create_swaps(swapper, to_swap)
         try_swapping!(models, swapper)
-        if swapper.number_of_swaps > swapper.max_swaps
-            @info "max swaps reached"
-            break
-        end
         # ! if none left we get an error
         # if isempty(to_swap)
         #     @warn to_swap
