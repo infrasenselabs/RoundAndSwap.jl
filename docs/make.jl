@@ -7,9 +7,9 @@ makedocs(
     modules = [RoundAndSwap]
 )
 
-# Documenter can also automatically deploy documentation to gh-pages.
-# See "Hosting Documentation" and deploydocs() in the Documenter manual
-# for more information.
-#=deploydocs(
-    repo = "<repository url>"
-)=#
+
+deploydocs(
+    repo = "github.com/this-josh/RoundAndSwap.jl.git",
+    push_preview = true,
+    forcepush = true,
+)
