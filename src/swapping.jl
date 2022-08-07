@@ -148,10 +148,6 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
         #* for var in to_swap
         create_swaps(swapper, to_swap)
         try_swapping!(models, swapper)
-        if swapper.number_of_swaps > swapper.max_swaps
-            @info "max swaps reached"
-            break
-        end
         # ! if none left we get an error
         # if isempty(to_swap)
         #     @warn to_swap
