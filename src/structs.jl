@@ -31,6 +31,7 @@ function _completed_swaps(swapper::Swapper)
     return [s for s in flatten(swapper.completed_swaps) if !isnothing(s.success)]
 end
 
+""" Get a list of swaps which succeeded ran"""
 function successful_swaps(swapper::Swapper)
     return [s for s in _completed_swaps(swapper) if s.success]
 end
