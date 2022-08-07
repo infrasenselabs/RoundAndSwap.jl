@@ -2,6 +2,9 @@ name: Run tests
 
 on: [push, pull_request]
 
+env:
+  GUROBI_JL_SKIP_LIB_CHECK: "No_Gurobi"
+
 jobs:
   test:
     name: ${{ matrix.os }} - ${{ matrix.version }} - $${{ matrix.arch }}
@@ -23,9 +26,6 @@ jobs:
           - version: '1.6'  
             os: ubuntu-latest
             arch: x64
-          - version: '1.6'  
-            os: ubuntu-latest
-            arch: x86
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1

@@ -23,32 +23,34 @@ function solve!(model, swapper, swap)
     swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
     swap.success = successful(model)
     swap.obj_value = swap.success ? objective_value(model) : NaN 
-    swap.all_fixed = fixed_variables(swapper)
+    swap.all_fixed = fixed_variables(model, swapper)
 end
 
 
-function try_swapping!(model::Model,swapper::Swappable)
+function try_swapping!(models::Array{Model},swapper::Swappable)
     push!(swapper.completed_swaps,[])
     p = Progress(length(swapper.to_swap))
     num_success = 0
     num_failed = 0
-    for swap in swapper.to_swap
+
+    Threads.@threads for swap in swapper.to_swap
+        model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
             break
         end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
-        if is_fixed(swap.new)
+        if is_fixed(get_var(model,swap.new))
             @debug "$(swap.new) already fixed"
             swap.termination_status = "fixed"
             continue
         end
-        unfix!(swap.existing)
-        fix(swap.new, 1, force=true)
-        if Set(fixed_variables(swapper)) in previously_tried(swapper)
+        unfix!(get_var(model,swap.existing))
+        fix(get_var(model,swap.new), 1, force=true)
+        if Set(fixed_variables(model, swapper)) in previously_tried(swapper)
             @debug "swap $swap already done"
-            swap.all_fixed =fixed_variables(swapper)
+            swap.all_fixed =fixed_variables(model, swapper)
             swap.termination_status = "already_done"
         else
             solve!(model, swapper, swap)
@@ -58,8 +60,8 @@ function try_swapping!(model::Model,swapper::Swappable)
         else
             num_failed += 1
         end
-        unfix!(swap.new)
-        fix(swap.existing, 1, force=true)
+        unfix!(get_var(model,swap.new))
+        fix(get_var(model,swap.existing), 1, force=true)
         ProgressMeter.next!(p; showvalues = [(:num_success,num_success),(:num_failed,num_failed)])
     end
     swapper.completed_swaps[end] = swapper.to_swap
@@ -68,7 +70,7 @@ end
 
 
 
-function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{VariableRef})
+function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
     # would easily refactor into create swaps
     initial_swaps = []
     # can be one loop
@@ -83,7 +85,7 @@ function initial_swaps(to_swap::Array{VariableRef}, to_swap_with::Array{Variable
     return initial_swaps
 end
 
-function create_swaps(swapper::Swappable, to_swap::VariableRef)
+function create_swaps(swapper::Swappable, to_swap::Symbol)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
@@ -110,28 +112,52 @@ function evalute_sweep(swapper::Swappable)
     return to_swap
 end
 
-function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; max_swaps = Inf)
-    swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  consider_swapping, model, max_swaps= max_swaps)
+function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf)
+    models = make_models(model,optimizer)
+    return round_and_swap(models, consider_swapping,optimizer=optimizer, max_swaps=max_swaps)
+end
+
+
+
+function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer=nothing)
+    consider_swapping = [Symbol(v) for v in consider_swapping]
+    initial_fixed = fixed_variables(models[1],consider_swapping)
+    if isempty(initial_fixed)
+        error("Some variables in consider_swapping must be fixed initially")
+    end
+    swapper= Swappable(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
-    solve!(model, swapper, init_swap)
+
+
+    solve!(models[1], swapper, init_swap)
     push!(swapper.completed_swaps,[])
     swapper.completed_swaps[end] = [init_swap]
-    try_swapping!(model, swapper)
+    try_swapping!(models, swapper)
+    if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
+        @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
+        return NaN, swapper
+    end
     better = evalute_sweep(swapper)
     while !isempty(better)
         bet = pop!(better)
         # set to better scenario
-        unfix!(swapper)
-        fix.(bet.all_fixed, 1, force=true)
+        unfix!(models, swapper)
+        fix!(models, bet.all_fixed)
         to_swap = setdiff(bet.all_fixed, [bet.new])
         to_swap = to_swap[1]
         #* for var in to_swap
         create_swaps(swapper, to_swap)
-        try_swapping!(model, swapper)
+        try_swapping!(models, swapper)
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
             break
         end
+        # ! if none left we get an error
+        # if isempty(to_swap)
+        #     @warn to_swap
+        #     continue
+        # end
+        
         better=  [better;evalute_sweep(swapper)...]
     end
     @info ("After $(total_optimisation_time(swapper)) seconds, found a solution with an objective value of $(best_objective(swapper))")

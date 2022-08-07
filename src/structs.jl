@@ -2,14 +2,14 @@
 using JuMP
 
 mutable struct Swap
-    existing::Union{VariableRef, Nothing}
-    new::Union{VariableRef, Nothing}
+    existing::Union{Symbol, Nothing}
+    new::Union{Symbol, Nothing}
     obj_value::Real
     success::Union{Bool, Nothing}
-    all_fixed::Union{Array{VariableRef}, Nothing}
+    all_fixed::Union{Array{Symbol}, Nothing}
     termination_status::Union{String, TerminationStatusCode, Nothing}
     solve_time::Union{Real, Nothing}
-    Swap(existing::Union{VariableRef, Nothing}, new::Union{VariableRef, Nothing}) = new(existing, new, NaN, nothing, nothing, nothing,nothing)
+    Swap(existing::Union{Symbol, Nothing}, new::Union{Symbol, Nothing}) = new(existing, new, NaN, nothing, nothing, nothing,nothing)
 end
 
 function Base.:(==)(a::Swap, b::Swap)
@@ -18,7 +18,7 @@ end
 
 mutable struct Swappable
     to_swap::Array{Swap}
-    consider_swapping::Array{VariableRef}
+    consider_swapping::Array{Symbol}
     completed_swaps::Union{Array{Array{Swap}}, Nothing}
     sense::OptimizationSense
     max_swaps::Real # Real to allow Inf
@@ -36,6 +36,10 @@ function successful_swaps(swapper::Swappable)
 end
 function unsuccessful_swaps(swapper::Swappable)
     return [s for s in _completed_swaps(swapper) if !s.success]
+end
+
+function status_codes(swapper::Swappable)
+    return [s.termination_status for s in _completed_swaps(swapper)]
 end
 
 function num_swaps(swapper::Swappable)
