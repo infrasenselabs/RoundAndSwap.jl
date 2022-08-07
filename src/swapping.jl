@@ -170,7 +170,7 @@ Given a model and a list of variables swap the integer values to improve the obj
 """
 function round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf)
     models = make_models(model,optimizer)
-    return round_and_swap(models, consider_swapping,optimizer=optimizer, max_swaps=max_swaps)
+    return round_and_swap(models, consider_swapping, max_swaps=max_swaps)
 end
 
 
