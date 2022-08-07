@@ -5,6 +5,7 @@ using HiGHS
 using RoundAndSwap
 
 model = Model(HiGHS.Optimizer)
+set_silent(model)
 @variable(model, 0 ≤  a ≤ 1)
 @variable(model, 0 ≤  b ≤ 1)
 @variable(model, 0 ≤  c ≤ 1)
@@ -33,7 +34,7 @@ _best_swap = _best_swap[1]
 @test _best_swap.termination_status == OPTIMAL
 @test length(swapper.to_swap) == 0
 @test length(swapper.completed_swaps) == 5
-@test length(flatten(swapper.completed_swaps)) == 16
+@test num_swaps(swapper) == 6
 
 
 @objective(model, Min, (a+b)+(2*(b+c))+(3*(c-d))+(4*(d+a)))
@@ -44,8 +45,8 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
-@test _best_swap.new == :d
-@test _best_swap.existing == :a
+@test _best_swap.new === nothing
+@test _best_swap.existing === nothing
 @test _best_swap.all_fixed[1] in [:b,:d]
 @test _best_swap.all_fixed[2] in [:b,:d]
 @test length(_best_swap.all_fixed) ==2
@@ -53,15 +54,13 @@ _best_swap = _best_swap[1]
 @test _best_swap.success == true
 @test _best_swap.termination_status == OPTIMAL
 @test length(swapper.to_swap) == 0
-@test length(swapper.completed_swaps) == 3
-@test length(flatten(swapper.completed_swaps)) == 10
-
+@test length(swapper.completed_swaps) == 2
+@test num_swaps(swapper) == 5
 @test swapper.completed_swaps[1] == swapper.completed_swaps[1]
-@test length(successful_swaps(swapper)) == 6
+@test length(successful_swaps(swapper)) == 5
 @test length(unsuccessful_swaps(swapper)) == 0
-@test length(num_swaps(swapper)) == 1
 # Print functions, check they don't error
-@test total_optimisation_time(swapper) == nothing
+@test total_optimisation_time(swapper) === nothing
 
 
 _best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 2)
