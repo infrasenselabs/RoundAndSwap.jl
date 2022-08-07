@@ -9,6 +9,7 @@
 * Added a progress bar for swaps
 * Prevented duplicate swaps from occuring
 * Added a max swaps option
+* Added docs
 
 
 ### v0.1.0
