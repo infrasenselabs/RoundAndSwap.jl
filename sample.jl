@@ -23,7 +23,7 @@ optimize!(model)
 consider_swapping = [a,b,c,d]
 
 
-swapper= Swappable(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  [a,b,c,d])
+swapper= Swapper(initial_swaps(fixed_variables(consider_swapping), consider_swapping),  [a,b,c,d])
 
 
 for _ in 1:1

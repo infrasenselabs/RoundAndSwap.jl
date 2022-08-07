@@ -1,15 +1,15 @@
 using JuMP
 using ProgressMeter
 
-function best_swap(swapper::Swappable)
+function best_swap(swapper::Swapper)
     filter(x-> x.obj_value == best_objective(swapper), flatten(swapper.completed_swaps))
 end
 
-function previously_tried(swapper::Swappable)
+function previously_tried(swapper::Swapper)
     [Set(fixed.all_fixed) for fixed in flatten(swapper.completed_swaps) if fixed.all_fixed!==nothing]
 end
 
-function best_objective(swapper::Swappable)
+function best_objective(swapper::Swapper)
     objectives = [obj.obj_value for obj in flatten(swapper.completed_swaps) if !isnan(obj.obj_value)]
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
@@ -27,7 +27,7 @@ function solve!(model, swapper, swap)
 end
 
 
-function try_swapping!(models::Array{Model},swapper::Swappable)
+function try_swapping!(models::Array{Model},swapper::Swapper)
     push!(swapper.completed_swaps,[])
     p = Progress(length(swapper.to_swap))
     num_success = 0
@@ -85,7 +85,7 @@ function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
     return initial_swaps
 end
 
-function create_swaps(swapper::Swappable, to_swap::Symbol)
+function create_swaps(swapper::Swapper, to_swap::Symbol)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
@@ -99,7 +99,7 @@ function create_swaps(swapper::Swappable, to_swap::Symbol)
 
 end
 
-function evalute_sweep(swapper::Swappable)
+function evalute_sweep(swapper::Swapper)
     current_best = best_objective(swapper)
     to_swap = []
     for swap in swapper.completed_swaps[end]
@@ -125,7 +125,7 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     if isempty(initial_fixed)
         error("Some variables in consider_swapping must be fixed initially")
     end
-    swapper= Swappable(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
+    swapper= Swapper(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
     init_swap = Swap(nothing, nothing)
 
 

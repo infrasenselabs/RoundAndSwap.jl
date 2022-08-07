@@ -29,7 +29,7 @@ function successful(t_stat:: TerminationStatusCode)
     return (t_stat in acceptable_status) ? true : false
 end
 
-function fixed_variables(model::Model, swapper::Swappable)
+function fixed_variables(model::Model, swapper::Swapper)
     return fixed_variables(model, swapper.consider_swapping)
 end
 
@@ -51,13 +51,13 @@ function unfix!(variable::VariableRef)
 	set_upper_bound(variable, 1)
 end
 
-function unfix!(swapper::Swappable)
+function unfix!(swapper::Swapper)
     for var in swapper.consider_swapping
         unfix!(var)
     end
 end
 
-function unfix!(models::Array{Model}, swapper::Swappable)
+function unfix!(models::Array{Model}, swapper::Swapper)
     for model in models for var in swapper.consider_swapping
         unfix!(get_var(model,var))
     end
