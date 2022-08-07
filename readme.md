@@ -1,4 +1,6 @@
-<img src="_logo/logo.png" width=20% height=20%>
+<p align="center">
+  <img src="_logo/logo.png" width=20% height=20%>
+</p>
 
 # RoundAndSwap
 
