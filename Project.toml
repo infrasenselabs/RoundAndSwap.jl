@@ -1,7 +1,7 @@
 name = "RoundAndSwap"
 uuid = "1fdb7cc3-d4bb-4c12-99d4-180ef071b60a"
 authors = ["Josh Kirk <59419126+this-josh@users.noreply.github.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AutomaticDocstrings = "70b36510-7dee-11e9-28d4-77afe9445f67"
