@@ -203,24 +203,30 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
     end
-    better = evalute_sweep(swapper)
-    while !isempty(better)
-        bet = pop!(better)
-        # set to better scenario
-        unfix!(models, swapper)
-        fix!(models, bet.all_fixed)
-        to_swap = setdiff(bet.all_fixed, [bet.new])
-        to_swap = to_swap[1]
-        #* for var in to_swap
-        create_swaps(swapper, to_swap)
-        try_swapping!(models, swapper)
-        # ! if none left we get an error
-        # if isempty(to_swap)
-        #     @warn to_swap
-        #     continue
-        # end
-        
-        better=  [better;evalute_sweep(swapper)...]
+    # Given swaps which improved initial, try to swap them
+    # Only applicable if we are swapping more than one var
+    if length(swapper.completed_swaps[1][1].all_fixed) ==1
+        @info "only one variable is to consider, have tried all applicable swaps"
+    else
+        better = evalute_sweep(swapper)
+        while !isempty(better)
+            bet = pop!(better)
+            # set to better scenario
+            unfix!(models, swapper)
+            fix!(models, bet.all_fixed)
+            to_swap = bet.all_fixed == [bet.new] ? [bet.new] : setdiff(bet.all_fixed, [bet.new])
+            to_swap = to_swap[1]
+            #* for var in to_swap
+            create_swaps!(swapper, to_swap)
+            try_swapping!(models, swapper)
+            # ! if none left we get an error
+            # if isempty(to_swap)
+            #     @warn to_swap
+            #     continue
+            # end
+            
+            better=  [better;evalute_sweep(swapper)...]
+        end
     end
     @info ("After $(total_optimisation_time(swapper)) seconds, found a solution with an objective value of $(best_objective(swapper))")
     return best_swap(swapper), swapper
