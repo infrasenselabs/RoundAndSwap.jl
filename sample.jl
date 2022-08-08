@@ -37,7 +37,7 @@ for _ in 1:1
         to_swap = setdiff(bet.all_fixed, [bet.new])
         to_swap = to_swap[1]
         #* for var in to_swap
-        create_swaps(swapper, to_swap)
+        create_swaps!(swapper, to_swap)
         try_swapping!(model, swapper)
         better=  [better;evalute_sweep(swapper)...]
     end

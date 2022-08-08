@@ -121,11 +121,11 @@ function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
 end
 
 """
-    create_swaps(swapper::Swapper, to_swap::Symbol)
+    create_swaps!(swapper::Swapper, to_swap::Symbol)
 
 Given the previously completed swaps, create a list of new swaps
 """
-function create_swaps(swapper::Swapper, to_swap::Symbol)
+function create_swaps!(swapper::Swapper, to_swap::Symbol)
     for to_consider in swapper.consider_swapping
         if to_consider == to_swap
             continue
