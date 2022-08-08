@@ -110,5 +110,5 @@ end
 Get the total time spent in optimizers
 """
 function total_optimisation_time(swapper::Swapper)
-    return print("Optimisations ran for: " * string(round(sum([s.solve_time for s in _completed_swaps(swapper)]),digits=2)) * " seconds")
+    return round(sum([s.solve_time for s in _completed_swaps(swapper)]),digits=2)
 end
