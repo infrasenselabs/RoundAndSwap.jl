@@ -24,14 +24,17 @@ end
 
 Get the best objective value in swapper.completed_swaps
 """
-function best_objective(swapper::Swapper)
-    objectives = [obj.obj_value for obj in flatten(swapper.completed_swaps) if !isnan(obj.obj_value)]
+function best_objective(swapper::Swapper;ignore_end=false)
+    swapper.number_of_swaps == 0 && return NaN 
+    swaps = ignore_end ? swapper.completed_swaps[1:end-1] : swapper.completed_swaps
+    objectives = [obj.obj_value for obj in flatten(swaps) if !isnan(obj.obj_value)]
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
     else
         return minimum(objectives)
     end
 end
+
 """
     solve!(model, swapper, swap)
 
