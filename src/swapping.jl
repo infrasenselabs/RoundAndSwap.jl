@@ -214,8 +214,11 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     if length(swapper.completed_swaps[1][1].all_fixed) ==1
         @info "only one variable is to consider, have tried all applicable swaps"
     else
+        sweep_number = 1
         better = evalute_sweep(swapper)
         while !isempty(better)
+            sweep_number +=1
+            @info "Running sweep $sweep_number"
             bet = pop!(better)
             # set to better scenario
             unfix!(models, swapper)
