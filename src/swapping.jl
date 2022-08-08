@@ -186,6 +186,7 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
 function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf)
+    start_time = now()
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1],consider_swapping)
     if isempty(initial_fixed)
@@ -198,6 +199,7 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     solve!(models[1], swapper, init_swap)
     push!(swapper.completed_swaps,[])
     swapper.completed_swaps[end] = [init_swap]
+    # Try swapping based on initially fixed
     try_swapping!(models, swapper)
     if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
