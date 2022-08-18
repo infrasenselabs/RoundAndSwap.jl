@@ -19,7 +19,7 @@ An objecct to keep track of a swap
 - `solve_time::Union{Real, Nothing}`: Time to solve
 - `Swap(existing, new)`: A constructor for a Swap object
 """
-@with_kw mutable struct Swap
+@with_kw_noshow mutable struct Swap
     existing::Union{Symbol, Nothing}
     new::Union{Symbol, Nothing}
     obj_value::Real=NaN
@@ -52,7 +52,7 @@ An object to keep track of all the swaps
 - `number_of_swaps::Int`: The number of swaps completed
 - `Swapper(to_swap, to_swap_with, model; max_swaps)`: A constructor
 """
-@with_kw mutable struct Swapper
+@with_kw_noshow mutable struct Swapper
     to_swap::Array{Swap}
     consider_swapping::Array{Symbol}
     sense::OptimizationSense
