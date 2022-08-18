@@ -1,5 +1,4 @@
 using Test
-
 using JuMP
 using HiGHS
 using RoundAndSwap
@@ -35,6 +34,10 @@ _best_swap = _best_swap[1]
 @test length(swapper.to_swap) == 0
 @test length(swapper.completed_swaps) == 5
 @test num_swaps(swapper) == 6
+
+save("test_swapper.json", swapper)
+_swapper = load_swapper("test_swapper.json")
+@test swapper == _swapper
 
 
 @objective(model, Min, (a[1]+b)+(2*(b+c))+(3*(c-d))+(4*(d+a[1])))
