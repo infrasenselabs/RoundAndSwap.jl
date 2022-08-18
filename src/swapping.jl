@@ -118,7 +118,7 @@ function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
             if existing == new
                 continue
             end
-            push!(initial_swaps, Swap(existing, new))
+            push!(initial_swaps, Swap(existing=existing, new=new))
         end
     end
     return initial_swaps
@@ -134,7 +134,7 @@ function create_swaps!(swapper::Swapper, to_swap::Symbol)
         if to_consider == to_swap
             continue
         end
-        _new_swap = Swap(to_swap, to_consider)
+        _new_swap = Swap(existing=to_swap, new=to_consider)
         if _new_swap in swapper.completed_swaps
             continue
         end
@@ -196,8 +196,12 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     if isempty(initial_fixed)
         error("Some variables in consider_swapping must be fixed initially")
     end
-    swapper= Swapper(initial_swaps(initial_fixed, consider_swapping),  consider_swapping, models[1], max_swaps= max_swaps)
-    init_swap = Swap(nothing, nothing)
+    swapper= Swapper(
+        to_swap = initial_swaps(initial_fixed, consider_swapping),
+        consider_swapping= consider_swapping,
+        sense= objective_sense(models[1]),
+        max_swaps= max_swaps)
+    init_swap = Swap(existing=nothing, new=nothing)
 
 
     solve!(models[1], swapper, init_swap)

@@ -1,5 +1,6 @@
 # structs and struct methods
 using JuMP
+using Parameters
 
 """
     Swap
@@ -16,15 +17,14 @@ An objecct to keep track of a swap
 - `solve_time::Union{Real, Nothing}`: Time to solve
 - `Swap(existing, new)`: A constructor for a Swap object
 """
-mutable struct Swap
+@with_kw mutable struct Swap
     existing::Union{Symbol, Nothing}
     new::Union{Symbol, Nothing}
-    obj_value::Real
-    success::Union{Bool, Nothing}
-    all_fixed::Union{Array{Symbol}, Nothing}
-    termination_status::Union{String, TerminationStatusCode, Nothing}
-    solve_time::Union{Real, Nothing}
-    Swap(existing::Union{Symbol, Nothing}, new::Union{Symbol, Nothing}) = new(existing, new, NaN, nothing, nothing, nothing,nothing)
+    obj_value::Real=NaN
+    success::Union{Bool, Nothing}=nothing
+    all_fixed::Union{Array{Symbol}, Nothing}=nothing
+    termination_status::Union{String, TerminationStatusCode, Nothing}=nothing
+    solve_time::Union{Real, Nothing}=nothing
 end
 
 """
@@ -50,14 +50,13 @@ An object to keep track of all the swaps
 - `number_of_swaps::Int`: The number of swaps completed
 - `Swapper(to_swap, to_swap_with, model; max_swaps)`: A constructor
 """
-mutable struct Swapper
+@with_kw mutable struct Swapper
     to_swap::Array{Swap}
     consider_swapping::Array{Symbol}
-    completed_swaps::Union{Array{Array{Swap}}, Nothing}
     sense::OptimizationSense
     max_swaps::Real # Real to allow Inf
-    number_of_swaps::Int
-    Swapper(to_swap, to_swap_with, model; max_swaps) = new(to_swap, to_swap_with, [], objective_sense(model), max_swaps, 0)
+    number_of_swaps::Int=0
+    completed_swaps::Union{Array{Array{Swap}}, Nothing}=[]
 end
 
 """
