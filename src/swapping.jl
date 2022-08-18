@@ -77,7 +77,7 @@ function try_swapping!(models::Array{Model},swapper::Swapper)
         @debug "Trying swap: $(swap.existing) -> $(swap.new)" 
         if is_fixed(get_var(model,swap.new))
             @debug "$(swap.new) already fixed"
-            swap.termination_status = "fixed"
+            swap.termination_status = Fixed
             continue
         end
         unfix!(get_var(model,swap.existing))
@@ -85,7 +85,7 @@ function try_swapping!(models::Array{Model},swapper::Swapper)
         if Set(fixed_variables(model, swapper)) in previously_tried(swapper)
             @debug "swap $swap already done"
             swap.all_fixed =fixed_variables(model, swapper)
-            swap.termination_status = "already_done"
+            swap.termination_status = AlreadyDone
         else
             solve!(model, swapper, swap)
         end

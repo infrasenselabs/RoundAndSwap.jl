@@ -2,6 +2,8 @@
 using JuMP
 using Parameters
 
+@enum RSStatusCodes Fixed=100 AlreadyDone=101
+
 """
     Swap
 
@@ -17,13 +19,13 @@ An objecct to keep track of a swap
 - `solve_time::Union{Real, Nothing}`: Time to solve
 - `Swap(existing, new)`: A constructor for a Swap object
 """
-@with_kw mutable struct Swap
+@with_kw_noshow mutable struct Swap
     existing::Union{Symbol, Nothing}
     new::Union{Symbol, Nothing}
     obj_value::Real=NaN
     success::Union{Bool, Nothing}=nothing
     all_fixed::Union{Array{Symbol}, Nothing}=nothing
-    termination_status::Union{String, TerminationStatusCode, Nothing}=nothing
+    termination_status::Union{RSStatusCodes, TerminationStatusCode, Nothing}=nothing
     solve_time::Union{Real, Nothing}=nothing
 end
 
@@ -50,13 +52,17 @@ An object to keep track of all the swaps
 - `number_of_swaps::Int`: The number of swaps completed
 - `Swapper(to_swap, to_swap_with, model; max_swaps)`: A constructor
 """
-@with_kw mutable struct Swapper
+@with_kw_noshow mutable struct Swapper
     to_swap::Array{Swap}
     consider_swapping::Array{Symbol}
     sense::OptimizationSense
     max_swaps::Real # Real to allow Inf
     number_of_swaps::Int=0
     completed_swaps::Union{Array{Array{Swap}}, Nothing}=[]
+end
+
+function Base.:(==)(a::Swapper, b::Swapper)
+    a.to_swap == b.to_swap && a.consider_swapping == b.consider_swapping && a.sense == b.sense && a.max_swaps == b.max_swaps
 end
 
 """

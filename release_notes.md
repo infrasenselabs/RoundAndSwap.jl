@@ -2,6 +2,10 @@
 
 ## v0.2.X
 
+### v0.2.1
+* Add ability to save and load swaps
+
+
 ### v0.2.0
 * Add multi threading of swaps
 * Pretty printing of swapper and swaps
