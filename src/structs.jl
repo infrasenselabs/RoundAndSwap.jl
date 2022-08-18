@@ -2,6 +2,8 @@
 using JuMP
 using Parameters
 
+@enum RSStatusCodes Fixed=100 AlreadyDone=101
+
 """
     Swap
 
@@ -23,7 +25,7 @@ An objecct to keep track of a swap
     obj_value::Real=NaN
     success::Union{Bool, Nothing}=nothing
     all_fixed::Union{Array{Symbol}, Nothing}=nothing
-    termination_status::Union{String, TerminationStatusCode, Nothing}=nothing
+    termination_status::Union{RSStatusCodes, TerminationStatusCode, Nothing}=nothing
     solve_time::Union{Real, Nothing}=nothing
 end
 
