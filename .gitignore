@@ -7,3 +7,5 @@ _logo/*
 .DS_Store
 
 build/
+
+test/test_swapper.json
