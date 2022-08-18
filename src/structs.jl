@@ -61,6 +61,10 @@ An object to keep track of all the swaps
     completed_swaps::Union{Array{Array{Swap}}, Nothing}=[]
 end
 
+function Base.:(==)(a::Swapper, b::Swapper)
+    a.to_swap == b.to_swap && a.consider_swapping == b.consider_swapping && a.sense == b.sense && a.max_swaps == b.max_swaps
+end
+
 """
     _completed_swaps(swapper::Swapper)
 
