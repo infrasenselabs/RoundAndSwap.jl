@@ -11,7 +11,7 @@
 
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: hhttps://this-josh.github.io/RoundAndSwap.jl/dev/
+[docs-dev-url]: https://this-josh.github.io/RoundAndSwap.jl/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://this-josh.github.io/RoundAndSwap.jl/dev/
