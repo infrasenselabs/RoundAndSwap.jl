@@ -2,7 +2,7 @@
 using JuMP
 using Parameters
 
-@enum RSStatusCodes Fixed=100 AlreadyDone=101
+@enum RSStatusCodes Fixed = 100 AlreadyDone = 101
 
 """
     Swap
@@ -20,13 +20,13 @@ An objecct to keep track of a swap
 - `Swap(existing, new)`: A constructor for a Swap object
 """
 @with_kw_noshow mutable struct Swap
-    existing::Union{Symbol, Nothing}
-    new::Union{Symbol, Nothing}
-    obj_value::Real=NaN
-    success::Union{Bool, Nothing}=nothing
-    all_fixed::Union{Array{Symbol}, Nothing}=nothing
-    termination_status::Union{RSStatusCodes, TerminationStatusCode, Nothing}=nothing
-    solve_time::Union{Real, Nothing}=nothing
+    existing::Union{Symbol,Nothing}
+    new::Union{Symbol,Nothing}
+    obj_value::Real = NaN
+    success::Union{Bool,Nothing} = nothing
+    all_fixed::Union{Array{Symbol},Nothing} = nothing
+    termination_status::Union{RSStatusCodes,TerminationStatusCode,Nothing} = nothing
+    solve_time::Union{Real,Nothing} = nothing
 end
 
 """
@@ -57,8 +57,8 @@ An object to keep track of all the swaps
     consider_swapping::Array{Symbol}
     sense::OptimizationSense
     max_swaps::Real # Real to allow Inf
-    number_of_swaps::Int=0
-    completed_swaps::Union{Array{Array{Swap}}, Nothing}=[]
+    number_of_swaps::Int = 0
+    completed_swaps::Union{Array{Array{Swap}},Nothing} = []
 end
 
 function Base.:(==)(a::Swapper, b::Swapper)
@@ -115,5 +115,5 @@ end
 Get the total time spent in optimizers
 """
 function total_optimisation_time(swapper::Swapper)
-    return round(sum([s.solve_time for s in _completed_swaps(swapper)]),digits=2)
+    return round(sum([s.solve_time for s in _completed_swaps(swapper)]), digits=2)
 end
