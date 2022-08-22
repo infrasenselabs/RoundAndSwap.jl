@@ -10,6 +10,7 @@ show(io::IO, s::Swap) = print(io,
         all_fixed:          $(s.all_fixed)          
         termination_status: $(s.termination_status) 
         solve_time:         $(s.solve_time)
+        swap_number:        $(s.swap_number)
     """)
 show(io::IO, s::Swapper) = print(io,
     """

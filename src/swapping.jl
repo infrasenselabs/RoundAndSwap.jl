@@ -70,6 +70,8 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
+        swap.swap_number = swapper.number_of_swaps
+        
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
             swapper._stop=true

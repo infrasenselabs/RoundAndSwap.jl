@@ -27,6 +27,7 @@ An objecct to keep track of a swap
     all_fixed::Union{Array{Symbol},Nothing} = nothing
     termination_status::Union{RSStatusCodes,TerminationStatusCode,Nothing} = nothing
     solve_time::Union{Real,Nothing} = nothing
+    swap_number::Union{Real,  Nothing} = nothing
 end
 
 """
