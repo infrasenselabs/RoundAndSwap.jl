@@ -66,6 +66,7 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     p = Progress(length(swapper.to_swap))
     num_success = 0
     num_failed = 0
+    swaps_complete = []
     for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
@@ -74,6 +75,7 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
             swapper._stop=true
             break
         end
+        push!(swaps_complete, swap)
         @debug "Trying swap: $(swap.existing) -> $(swap.new)"
         if is_fixed(get_var(model, swap.new))
             @debug "$(swap.new) already fixed"
@@ -98,8 +100,8 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
         fix(get_var(model, swap.existing), 1, force=true)
         ProgressMeter.next!(p; showvalues=[(:num_success, num_success), (:num_failed, num_failed)])
     end
-    swapper.completed_swaps[end] = swapper.to_swap
-    swapper.to_swap = []
+    swapper.completed_swaps[end] = swaps_complete
+    swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
 end
 
 
