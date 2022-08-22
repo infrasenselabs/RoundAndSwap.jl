@@ -72,6 +72,7 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
         swapper.number_of_swaps += 1
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
+            swapper._stop=true
             break
         end
         @debug "Trying swap: $(swap.existing) -> $(swap.new)"
@@ -220,7 +221,7 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     else
         sweep_number = 1
         better = evalute_sweep(swapper)
-        while !isempty(better)
+        while !isempty(better) && ~swapper._stop
             sweep_number += 1
             @info "Running sweep $sweep_number"
             bet = pop!(better)

@@ -59,6 +59,7 @@ An object to keep track of all the swaps
     max_swaps::Real # Real to allow Inf
     number_of_swaps::Int = 0
     completed_swaps::Union{Array{Array{Swap}},Nothing} = []
+    _stop::Bool = false
 end
 
 function Base.:(==)(a::Swapper, b::Swapper)
