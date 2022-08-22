@@ -66,8 +66,7 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     p = Progress(length(swapper.to_swap))
     num_success = 0
     num_failed = 0
-
-    Threads.@threads for swap in swapper.to_swap
+    for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
         if swapper.number_of_swaps > swapper.max_swaps
