@@ -226,6 +226,10 @@ function round_and_swap(models::Array{Model}, swapper::Swapper)
     if length(swapper.completed_swaps[1][1].all_fixed) == 1
         @info "only one variable is to consider, have tried all applicable swaps"
     else
+        if !isempty(swapper.to_swap)
+            @info "Swapper has existing swaps to complete, will do this. Ensure max_swap has been increased"
+            try_swapping!(models, swapper)
+        end
         sweep_number = 1
         better = evalute_sweep(swapper)
         while !isempty(better) && ~swapper._stop
