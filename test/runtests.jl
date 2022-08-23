@@ -35,6 +35,14 @@ _best_swap = _best_swap[1]
 @test length(swapper.completed_swaps) == 5
 @test num_swaps(swapper) == 6
 
+# Test restarting
+_, _short_swapper = round_and_swap(model, consider_swapping, max_swaps=3)
+models = make_models(model, HiGHS.Optimizer)
+_short_swapper.max_swaps = Inf
+_b, _s = round_and_swap(models, _short_swapper)
+@test _s == swapper
+@test _b[1] == _best_swap
+
 save("test_swapper.json", swapper)
 _swapper = load_swapper("test_swapper.json")
 @test swapper == _swapper
