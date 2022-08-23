@@ -219,6 +219,7 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     return round_and_swap(models, swapper)
 end
 function round_and_swap(models::Array{Model}, swapper::Swapper)
+    swapper._stop=false
     start_time = now()
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
