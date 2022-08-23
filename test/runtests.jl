@@ -23,6 +23,7 @@ optimize!(model)
 consider_swapping = [a[1],b,c,d]
 _best_swap, swapper = round_and_swap(model, consider_swapping)
 
+# Test basic run
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
 @test _best_swap.new == Symbol("a[1]")
@@ -43,11 +44,12 @@ _b, _s = round_and_swap(models, _short_swapper)
 @test _s == swapper
 @test _b[1] == _best_swap
 
+# Sest IO
 save("test_swapper.json", swapper)
 _swapper = load_swapper("test_swapper.json")
 @test swapper == _swapper
 
-
+# Test Min
 @objective(model, Min, (a[1]+b)+(2*(b+c))+(3*(c-d))+(4*(d+a[1])))
 
 @constraint(model, a[1]+b+c+d == 2)
@@ -73,7 +75,7 @@ _best_swap = _best_swap[1]
 # Print functions, check they don't error
 @test total_optimisation_time(swapper) < 0.1
 
-
+# Test max swaps
 _best_swap, swapper = round_and_swap(model, consider_swapping, max_swaps = 2)
 
 # First "swap" is with the initial values
