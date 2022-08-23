@@ -27,7 +27,7 @@ An objecct to keep track of a swap
     all_fixed::Union{Array{Symbol},Nothing} = nothing
     termination_status::Union{RSStatusCodes,TerminationStatusCode,Nothing} = nothing
     solve_time::Union{Real,Nothing} = nothing
-    swap_number::Union{Real,  Nothing} = nothing
+    swap_number::Union{Real,Nothing} = nothing
 end
 
 """
@@ -64,7 +64,10 @@ An object to keep track of all the swaps
 end
 
 function Base.:(==)(a::Swapper, b::Swapper)
-    a.to_swap == b.to_swap && a.consider_swapping == b.consider_swapping && a.sense == b.sense && a.max_swaps == b.max_swaps
+    return a.to_swap == b.to_swap &&
+               a.consider_swapping == b.consider_swapping &&
+               a.sense == b.sense &&
+               a.max_swaps == b.max_swaps
 end
 
 """
@@ -117,5 +120,5 @@ end
 Get the total time spent in optimizers
 """
 function total_optimisation_time(swapper::Swapper)
-    return round(sum([s.solve_time for s in _completed_swaps(swapper)]), digits=2)
+    return round(sum([s.solve_time for s in _completed_swaps(swapper)]); digits=2)
 end
