@@ -65,9 +65,9 @@ end
 
 function Base.:(==)(a::Swapper, b::Swapper)
     return a.to_swap == b.to_swap &&
-               a.consider_swapping == b.consider_swapping &&
-               a.sense == b.sense &&
-               a.max_swaps == b.max_swaps
+           a.consider_swapping == b.consider_swapping &&
+           a.sense == b.sense &&
+           a.max_swaps == b.max_swaps
 end
 
 """
