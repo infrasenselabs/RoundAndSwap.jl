@@ -90,3 +90,29 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 @test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]
 
 @test model[[:c, :b]] == [c, b]
+
+
+model = make_model()
+@constraint(model,model[:a][1] ≤ 0.9)
+optimize!(model)
+consider_swapping = [model[:a][1],model[:b], model[:c], model[:d]]
+
+
+@test value(model[:a][1]) == 0.9
+@test value(model[:b]) ≈ 0.1
+
+round!(consider_swapping, 2)
+optimize!(model)
+objective_value(model)
+
+@test fix_value(model[:a][1]) == 1
+@test fix_value(model[:c]) == 1
+
+
+model = make_model()
+@constraint(model,model[:a][1] ≤ 0.9)
+@constraint(model,model[:c] ≤ 0.9)
+optimize!(model)
+
+consider_swapping = [model[:a][1],model[:b], model[:c], model[:d]]
+@test_throws ErrorException round!(consider_swapping, 1)
