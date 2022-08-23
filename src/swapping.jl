@@ -232,7 +232,7 @@ function round_and_swap(models::Array{Model}, swapper::Swapper)
         end
         sweep_number = 1
         better = evalute_sweep(swapper)
-        while !isempty(better) && ~swapper._stop
+        while !isempty(better) && !swapper._stop
             sweep_number += 1
             @info "Running sweep $sweep_number"
             bet = pop!(better)
