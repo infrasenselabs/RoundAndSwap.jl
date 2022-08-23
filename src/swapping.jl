@@ -196,9 +196,7 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `consider_swapping`: An array of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
-function swap(
-    models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf
-)
+function swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf)
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
     if isempty(initial_fixed)
@@ -237,7 +235,9 @@ function swap(models::Array{Model}, swapper::Swapper)
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
     if swapper.max_swaps == num_swaps(swapper)
-        @warn ("Swapper already at max swaps, if this swapper has previously hit its max swaps this must be reset before resuming. `swapper.max_swaps=Inf`")
+        @warn (
+            "Swapper already at max swaps, if this swapper has previously hit its max swaps this must be reset before resuming. `swapper.max_swaps=Inf`"
+        )
     end
     if length(swapper.completed_swaps[1][1].all_fixed) == 1
         @info "only one variable is to consider, have tried all applicable swaps"
