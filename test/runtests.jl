@@ -3,21 +3,25 @@ using JuMP
 using HiGHS
 using RoundAndSwap
 
-model = Model(HiGHS.Optimizer)
-set_silent(model)
-@variable(model, 0 ≤ a[1:3] ≤ 1)
-@variable(model, 0 ≤ b ≤ 1)
-@variable(model, 0 ≤ c ≤ 1)
-@variable(model, 0 ≤ d ≤ 1)
+function make_model()
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    @variable(model, 0 ≤ a[1:3] ≤ 1)
+    @variable(model, 0 ≤ b ≤ 1)
+    @variable(model, 0 ≤ c ≤ 1)
+    @variable(model, 0 ≤ d ≤ 1)
 
-@objective(model, Max, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
+    @objective(model, Max, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
 
-@constraint(model, a[1] + b + c + d == 2)
+    @constraint(model, a[1] + b + c + d == 2)
 
+    return model
+end    
+model = make_model()
+optimize!(model)
 fix(model[:b], 1; force=true)
 fix(model[:d], 1; force=true)
-
-optimize!(model)
+a, b,c, d = [model[:a][1]],model[:b], model[:c], model[:d]
 
 consider_swapping = [a[1], b, c, d]
 _best_swap, swapper = round_and_swap(model, consider_swapping)
