@@ -14,7 +14,7 @@
 [docs-dev-url]: https://this-josh.github.io/RoundAndSwap.jl/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://this-josh.github.io/RoundAndSwap.jl/dev/
+[docs-stable-url]: https://this-josh.github.io/RoundAndSwap.jl/stable/
 
 [GHA-img]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg
 [GHA-url]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml
