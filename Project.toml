@@ -15,6 +15,7 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 
 [compat]
+DataStructures = "0.18"
 Gurobi = "0.11.3"
 HiGHS = "1"
 Ipopt = "1"
