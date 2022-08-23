@@ -169,7 +169,7 @@ function evalute_sweep(swapper::Swapper)
 end
 
 """
-    round_and_swap(model::Model, consider_swapping::Array{VariableRef}; optimizer = nothing, max_swaps = Inf)
+    swap(model::Model, consider_swapping::Array{VariableRef}; optimizer = nothing, max_swaps = Inf)
 
 Given a model and a list of variables swap the integer values to improve the objective function
 
@@ -179,15 +179,15 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `optimizer`: A specific optimizer to use, if the desired is not in [Gurobi, Ipopt, HiGHS]
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
-function round_and_swap(
+function swap(
     model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf
 )
     models = make_models(model, optimizer)
-    return round_and_swap(models, consider_swapping; max_swaps=max_swaps)
+    return swap(models, consider_swapping; max_swaps=max_swaps)
 end
 
 """
-    round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer = nothing)
+    swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer = nothing)
 
 Given a model and a list of variables swap the integer values to improve the objective function
 
@@ -196,7 +196,7 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `consider_swapping`: An array of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
-function round_and_swap(
+function swap(
     models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf
 )
     consider_swapping = [Symbol(v) for v in consider_swapping]
@@ -221,9 +221,9 @@ function round_and_swap(
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
     end
-    return round_and_swap(models, swapper)
+    return swap(models, swapper)
 end
-function round_and_swap(models::Array{Model}, swapper::Swapper)
+function swap(models::Array{Model}, swapper::Swapper)
     swapper._stop = false
     start_time = now()
     # Given swaps which improved initial, try to swap them
