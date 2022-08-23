@@ -27,6 +27,7 @@ An objecct to keep track of a swap
     all_fixed::Union{Array{Symbol},Nothing} = nothing
     termination_status::Union{RSStatusCodes,TerminationStatusCode,Nothing} = nothing
     solve_time::Union{Real,Nothing} = nothing
+    swap_number::Union{Real,  Nothing} = nothing
 end
 
 """
@@ -59,6 +60,7 @@ An object to keep track of all the swaps
     max_swaps::Real # Real to allow Inf
     number_of_swaps::Int = 0
     completed_swaps::Union{Array{Array{Swap}},Nothing} = []
+    _stop::Bool = false
 end
 
 function Base.:(==)(a::Swapper, b::Swapper)

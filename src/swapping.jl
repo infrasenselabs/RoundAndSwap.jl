@@ -66,14 +66,18 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     p = Progress(length(swapper.to_swap))
     num_success = 0
     num_failed = 0
-
-    Threads.@threads for swap in swapper.to_swap
+    swaps_complete = []
+    for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
+        swap.swap_number = swapper.number_of_swaps
+        
         if swapper.number_of_swaps > swapper.max_swaps
             @info "max swaps reached"
+            swapper._stop=true
             break
         end
+        push!(swaps_complete, swap)
         @debug "Trying swap: $(swap.existing) -> $(swap.new)"
         if is_fixed(get_var(model, swap.new))
             @debug "$(swap.new) already fixed"
@@ -98,8 +102,8 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
         fix(get_var(model, swap.existing), 1, force=true)
         ProgressMeter.next!(p; showvalues=[(:num_success, num_success), (:num_failed, num_failed)])
     end
-    swapper.completed_swaps[end] = swapper.to_swap
-    swapper.to_swap = []
+    swapper.completed_swaps[end] = swaps_complete
+    swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
 end
 
 
@@ -190,7 +194,6 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
 function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf)
-    start_time = now()
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
     if isempty(initial_fixed)
@@ -213,14 +216,23 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
     end
+    return round_and_swap(models, swapper)
+end
+function round_and_swap(models::Array{Model}, swapper::Swapper)
+    swapper._stop=false
+    start_time = now()
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
     if length(swapper.completed_swaps[1][1].all_fixed) == 1
         @info "only one variable is to consider, have tried all applicable swaps"
     else
+        if !isempty(swapper.to_swap)
+            @info "Swapper has existing swaps to complete, will do this. Ensure max_swap has been increased"
+            try_swapping!(models, swapper)
+        end
         sweep_number = 1
         better = evalute_sweep(swapper)
-        while !isempty(better)
+        while !isempty(better) && !swapper._stop
             sweep_number += 1
             @info "Running sweep $sweep_number"
             bet = pop!(better)
@@ -248,3 +260,4 @@ function round_and_swap(models::Array{Model}, consider_swapping::Array{VariableR
     Best objective : $(best_objective(swapper))")
     return best_swap(swapper), swapper
 end
+
