@@ -236,6 +236,9 @@ function swap(models::Array{Model}, swapper::Swapper)
     start_time = now()
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
+    if swapper.max_swaps == num_swaps(swapper)
+        @warn ("Swapper already at max swaps, if this swapper has previously hit its max swaps this must be reset before resuming. `swapper.max_swaps=Inf`")
+    end
     if length(swapper.completed_swaps[1][1].all_fixed) == 1
         @info "only one variable is to consider, have tried all applicable swaps"
     else
