@@ -3,21 +3,25 @@ using JuMP
 using HiGHS
 using RoundAndSwap
 
-model = Model(HiGHS.Optimizer)
-set_silent(model)
-@variable(model, 0 ≤ a[1:3] ≤ 1)
-@variable(model, 0 ≤ b ≤ 1)
-@variable(model, 0 ≤ c ≤ 1)
-@variable(model, 0 ≤ d ≤ 1)
+function make_model()
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    @variable(model, 0 ≤ a[1:3] ≤ 1)
+    @variable(model, 0 ≤ b ≤ 1)
+    @variable(model, 0 ≤ c ≤ 1)
+    @variable(model, 0 ≤ d ≤ 1)
 
-@objective(model, Max, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
+    @objective(model, Max, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
 
-@constraint(model, a[1] + b + c + d == 2)
+    @constraint(model, a[1] + b + c + d == 2)
 
+    return model
+end    
+model = make_model()
+optimize!(model)
 fix(model[:b], 1; force=true)
 fix(model[:d], 1; force=true)
-
-optimize!(model)
+a, b,c, d = [model[:a][1]],model[:b], model[:c], model[:d]
 
 consider_swapping = [a[1], b, c, d]
 _best_swap, swapper = round_and_swap(model, consider_swapping)
@@ -86,3 +90,29 @@ _best_swap, swapper = round_and_swap(model, consider_swapping)
 @test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]
 
 @test model[[:c, :b]] == [c, b]
+
+
+model = make_model()
+@constraint(model,model[:a][1] ≤ 0.9)
+optimize!(model)
+consider_swapping = [model[:a][1],model[:b], model[:c], model[:d]]
+
+
+@test value(model[:a][1]) == 0.9
+@test value(model[:b]) ≈ 0.1
+
+round!(consider_swapping, 2)
+optimize!(model)
+objective_value(model)
+
+@test fix_value(model[:a][1]) == 1
+@test fix_value(model[:c]) == 1
+
+
+model = make_model()
+@constraint(model,model[:a][1] ≤ 0.9)
+@constraint(model,model[:c] ≤ 0.9)
+optimize!(model)
+
+consider_swapping = [model[:a][1],model[:b], model[:c], model[:d]]
+@test_throws ErrorException round!(consider_swapping, 1)
