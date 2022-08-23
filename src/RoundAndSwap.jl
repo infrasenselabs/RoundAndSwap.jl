@@ -6,6 +6,7 @@ include("misc.jl")
 include("model.jl")
 include("printing.jl")
 include("inout.jl")
+include("round.jl")
 
 # misc
 export flatten
@@ -22,6 +23,10 @@ export Swap,
     num_swaps,
     status_codes,
     RSStatusCodes
+
+# round
+export round!
+
 # swapping
 export best_swap,
     previously_tried,
