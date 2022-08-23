@@ -1,6 +1,7 @@
 import Base.show
 
-show(io::IO, s::Swap) = print(io,
+show(io::IO, s::Swap) = print(
+    io,
     """
     Swap 
         existing:           $(s.existing)
@@ -11,8 +12,10 @@ show(io::IO, s::Swap) = print(io,
         termination_status: $(s.termination_status) 
         solve_time:         $(s.solve_time)
         swap_number:        $(s.swap_number)
-    """)
-show(io::IO, s::Swapper) = print(io,
+    """,
+)
+show(io::IO, s::Swapper) = print(
+    io,
     """
     Swapper
         $(length(s.to_swap)) left to swap
@@ -22,4 +25,5 @@ show(io::IO, s::Swapper) = print(io,
         $(length(successful_swaps(s))) were successful
         $(length(unsuccessful_swaps(s))) were unsuccessful
         The rest were be skipped
-    """)
+    """,
+)

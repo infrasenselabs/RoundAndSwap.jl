@@ -3,7 +3,9 @@ using JuMP
 
 using Ipopt, Gurobi, HiGHS
 
-solver_dict = Dict("Ipopt" => Ipopt.Optimizer, "Gurobi" => Gurobi.Optimizer, "HiGHS" => HiGHS.Optimizer)
+solver_dict = Dict(
+    "Ipopt" => Ipopt.Optimizer, "Gurobi" => Gurobi.Optimizer, "HiGHS" => HiGHS.Optimizer
+)
 
 """
     Base.getindex(m::JuMP.AbstractModel, names::Array{Symbol})
@@ -82,7 +84,7 @@ function unfix!(variable::VariableRef)
         end
     end
     set_lower_bound(variable, 0)
-    set_upper_bound(variable, 1)
+    return set_upper_bound(variable, 1)
 end
 
 """
@@ -111,7 +113,7 @@ For each model, fix all variables in to_fix to 1
 function fix!(models::Array{Model}, to_fix::Array{Symbol}, value=1)
     for model in models
         for var in to_fix
-            fix(get_var(model, var), value, force=true)
+            fix(get_var(model, var), value; force=true)
         end
     end
 end
@@ -127,7 +129,10 @@ Given a single model, make enough models to have one for each thread
 function make_models(model::Model, optimizer::Union{Nothing,DataType}=nothing)
     optimizer = !isnothing(optimizer) ? optimizer : solver_dict[solver_name(model)]
     _models = [copy(model) for _ in 1:Threads.nthreads()]
-    [MOI.set(_models[ii], MOI.Name(), "Model for thread: $ii") for ii in 1:Threads.nthreads()]
+    [
+        MOI.set(_models[ii], MOI.Name(), "Model for thread: $ii") for
+        ii in 1:Threads.nthreads()
+    ]
     set_optimizer.(_models, optimizer)
     return _models
 end
