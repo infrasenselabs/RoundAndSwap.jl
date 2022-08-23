@@ -8,6 +8,8 @@ include("printing.jl")
 include("inout.jl")
 include("round.jl")
 
+const SHOW_PROGRESS_BARS = parse(Bool, get(ENV, "PROGRESS_BARS", "false"))
+
 # misc
 export flatten
 # model

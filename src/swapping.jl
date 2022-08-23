@@ -67,7 +67,7 @@ Given a model and the swapper, try all swaps in swapper.to_swap
 """
 function try_swapping!(models::Array{Model}, swapper::Swapper)
     push!(swapper.completed_swaps, [])
-    p = Progress(length(swapper.to_swap))
+    p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
     num_success = 0
     num_failed = 0
     swaps_complete = []
