@@ -127,6 +127,7 @@ Given a single model, make enough models to have one for each thread
 - `optimizer`: Optimizer to use, if nothing, will use the same as the one in the provided model, proving it is one of [Gurobi, Ipopt, HiGHS]
 """
 function make_models(model::Model, optimizer::Union{Nothing,DataType}=nothing)
+    @info "RoundAndSwap.jl will create a model for each thread, not this will lose any set solver attributes."
     optimizer = !isnothing(optimizer) ? optimizer : solver_dict[solver_name(model)]
     _models = [copy(model) for _ in 1:Threads.nthreads()]
     [
