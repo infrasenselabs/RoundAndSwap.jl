@@ -169,7 +169,7 @@ function evalute_sweep(swapper::Swapper)
 end
 
 """
-    swap(model::Model, consider_swapping::Array{VariableRef}; optimizer = nothing, max_swaps = Inf)
+    swap(model::Model, consider_swapping::Array{VariableRef}; optimizer = nothing, max_swaps = Inf,save_path::Union{Nothing, String}=nothing)
 
 Given a model and a list of variables swap the integer values to improve the objective function
 
@@ -178,12 +178,13 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `consider_swapping`: An array of variables to consider swapping
 - `optimizer`: A specific optimizer to use, if the desired is not in [Gurobi, Ipopt, HiGHS]
 - `max_swaps`: The maximum number of swaps, default is Inf
+- `save_path`: A path to save the swapper to after each swap, isnothing(save_path) ?  don't save : save, default is nothing
 """
 function swap(
-    model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf
+    model::Model, consider_swapping::Array{VariableRef}; optimizer=nothing, max_swaps=Inf, save_path::Union{Nothing, String}=nothing
 )
     models = make_models(model, optimizer)
-    return swap(models, consider_swapping; max_swaps=max_swaps)
+    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path)
 end
 
 """
@@ -196,7 +197,7 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `consider_swapping`: An array of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
 """
-function swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf)
+function swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps=Inf, save_path::Union{Nothing, String}=nothing)
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
     if isempty(initial_fixed)
@@ -219,7 +220,7 @@ function swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_s
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
     end
-    return swap(models, swapper)
+    return swap(models, swapper, save_path=save_path)
 end
 
 """
@@ -229,7 +230,7 @@ end
 - `models`: An array of models, one for each thread
 - `swapper`: An already initialised swapper, this can either be clean or it can be partially complete
 """
-function swap(models::Array{Model}, swapper::Swapper)
+function swap(models::Array{Model}, swapper::Swapper; save_path::Union{Nothing, String}=nothing)
     swapper._stop = false
     start_time = now()
     # Given swaps which improved initial, try to swap them
@@ -266,7 +267,7 @@ function swap(models::Array{Model}, swapper::Swapper)
             #     @warn to_swap
             #     continue
             # end
-
+            !isnothing(save_path) && save(save_path,swapper)
             better = [better; evalute_sweep(swapper)...]
         end
     end
