@@ -1,7 +1,15 @@
 # RoundAndSwap.jl
 
-[![Run tests](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg)](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml)[![codecov](https://codecov.io/gh/this-josh/RoundAndSwap.jl/branch/main/graph/badge.svg?token=hfQGPZjl2y)](https://codecov.io/gh/this-josh/RoundAndSwap.jl)
 
+| **Build Status**                                                                                |
+|:-----------------------------------------------------------------------------------------------:|
+| [![][GHA-img]][GHA-url] [![][codecov-img]][codecov-url] |
+
+[GHA-img]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg
+[GHA-url]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml
+
+[codecov-img]: https://codecov.io/gh/this-josh/RoundAndSwap.jl/branch/main/graph/badge.svg?token=hfQGPZjl2y
+[codecov-url]: https://codecov.io/gh/this-josh/RoundAndSwap.jl
 
 
 `RoundAndSwap.jl` is a library for implementing the Round and Swap algorithm to try and find an intial solution.
