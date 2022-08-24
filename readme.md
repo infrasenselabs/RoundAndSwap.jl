@@ -4,11 +4,26 @@
 
 # RoundAndSwap.jl
 
-[![Run tests](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg)](https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml)[![codecov](https://codecov.io/gh/this-josh/RoundAndSwap.jl/branch/main/graph/badge.svg?token=hfQGPZjl2y)](https://codecov.io/gh/this-josh/RoundAndSwap.jl)
+| **Documentation**                                                               | **Build Status**                                                                                |
+|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][GHA-img]][GHA-url] [![][codecov-img]][codecov-url] |
+
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://this-josh.github.io/RoundAndSwap.jl/dev/
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://this-josh.github.io/RoundAndSwap.jl/stable/
+
+[GHA-img]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg
+[GHA-url]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml
+
+[codecov-img]: https://codecov.io/gh/this-josh/RoundAndSwap.jl/branch/main/graph/badge.svg?token=hfQGPZjl2y
+[codecov-url]: https://codecov.io/gh/this-josh/RoundAndSwap.jl
 
 
 
-`RoundAndSwap.jl` is a library for implementing the Round and Swap algorithm to try and find an intial solution.
+`RoundAndSwap.jl` is a library which implements the Round and Swap algorithm
 
 
 ## Getting started
