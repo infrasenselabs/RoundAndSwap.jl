@@ -4,23 +4,65 @@
 
 
 
-`RoundAndSwap` is a library for implementing the Round and Swap algorithm to try and find an intial solution.
+`RoundAndSwap.jl` is a library for implementing the Round and Swap algorithm to try and find an intial solution.
+
+
+## Getting started
+
+1.  Create your JuMP model, and optimize
+```julia
+# Define how many variables you want fixed
+num_to_fix = 2
+
+using JuMP, HiGHS
+model = Model(HiGHS.Optimizer)
+@variable(model, 0 ≤ a ≤ 1)
+@variable(model, 0 ≤ b ≤ 1)
+@variable(model, 0 ≤ c ≤ 1)
+@variable(model, 0 ≤ d ≤ 1)
+@constraint(model, a + b + c + d == num_to_fix)
+@objective(model, Max, (a + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a)))
+
+# To demonstate functionality we will fix b and d
+fix(b, 0.8; force=true)
+fix(d, 0.8; force=true)
+
+optimize!(model)
+```
+2. Identify which variable we are considering making `1`
+```julia
+consider_swapping = [a,b,c,d]
+```
+
+3. Round variables closest to `1`, this will be b and d as we fixed them at `0.8`.
+```julia
+using RoundAndSwap
+round!(consider_swapping, num_to_fix)
+```
+4. Begin swapping
+```julia
+best_swap, swapper = swap(model, consider_swapping)
+```
+5. Review your best swap
+```julia
+julia> best_swap
+1-element Vector{Swap}:
+ Swap 
+    existing:           b
+    new:                a
+    obj_value:          10.0          
+    success:            true            
+    all_fixed:          [:a, :c]          
+    termination_status: OPTIMAL 
+    solve_time:         0.0004438320000872409
+    swap_number:        7
+```
+As you can see in this case we found the globally optimal solution of 10.
+ *Note:* Round and Swap does not provide guarantees of global optimility.
 
 ### caveats
 
-* Only choosing 0 and 1 as integer values is supported.
-
-## Quickstart
-
-1.  Create your JuMP model
-2.  Solve a linear relaxation of your problem
-3.  Fix the desired number of variables to 1
-4.  Create an array of variables to consider in the swap - `consider_swapping`
-5.  `round_and_swap(model, consider_swapping)`
-
-
-See the `tests/runtests.jl` for an example of how to use this library.
-
+* Currently can only set variables to `0` or `1`.
 
 ## Performance
 
