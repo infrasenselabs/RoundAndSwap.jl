@@ -9,3 +9,4 @@ _logo/*
 build/
 
 test/test_swapper.json
+test/swapper_in_loop.json
