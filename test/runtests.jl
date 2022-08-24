@@ -24,7 +24,7 @@ fix(model[:d], 1; force=true)
 a, b, c, d = [model[:a][1]], model[:b], model[:c], model[:d]
 
 consider_swapping = [a[1], b, c, d]
-_best_swap, swapper = swap(model, consider_swapping)
+_best_swap, swapper = swap(model, consider_swapping, save_path ="swapper_in_loop")
 
 # Test basic run
 @test length(_best_swap) == 1
@@ -48,9 +48,11 @@ _b, _s = swap(models, _short_swapper)
 @test _b[1] == _best_swap
 
 # Sest IO
-save("test_swapper.json", swapper)
-_swapper = load_swapper("test_swapper.json")
-@test swapper == _swapper
+for f in ("swapper_in_loop.json", "test_swapper.json")
+    save(f, swapper)
+    _swapper = load_swapper(f)
+    @test swapper == _swapper
+end
 
 # Test Min
 @objective(model, Min, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
