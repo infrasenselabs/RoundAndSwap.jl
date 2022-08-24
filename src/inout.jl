@@ -15,7 +15,7 @@ function JSON.lower(s::Swap)
 end
 
 function save(file_name::String, s::Swapper)
-    if splitext(file_name)[end]!==".json"
+    if splitext(file_name)[end] !== ".json"
         @info "Adding .json extension to file name"
         file_name = file_name * ".json"
     end
