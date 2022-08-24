@@ -24,7 +24,7 @@ fix(model[:d], 1; force=true)
 a, b, c, d = [model[:a][1]], model[:b], model[:c], model[:d]
 
 consider_swapping = [a[1], b, c, d]
-_best_swap, swapper = swap(model, consider_swapping, save_path ="swapper_in_loop")
+_best_swap, swapper = swap(model, consider_swapping; save_path="swapper_in_loop")
 
 # Test basic run
 @test length(_best_swap) == 1
