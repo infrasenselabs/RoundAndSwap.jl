@@ -289,3 +289,17 @@ function swap(
     Best objective : $(best_objective(swapper))")
     return best_swap(swapper), swapper
 end
+
+
+"""
+    reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+
+Only consider the num_desired_to_consider largest values in to consider. Note that to_consider shouldn't be rounded yet.
+"""
+function reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+    consider_vals = value.(to_consider)
+    thresh = threshold(consider_vals, num_desired_to_consider)
+    @assert thresh!=0 "Thresh is zero, you cannot consider this many values"
+    idx_to_consider = findall(x -> thresh ≤ x, consider_vals)
+    return to_consider[idx_to_consider]
+end
