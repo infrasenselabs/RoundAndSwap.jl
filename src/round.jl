@@ -1,7 +1,10 @@
 using JuMP
 
+threshold(values, num_above) =  minimum(sort(values)[(end-num_above+1):end])
+
+
 function round!(to_consider::Vector{VariableRef}, num_to_fix::Int)
-    thresh = minimum(sort(value.(to_consider))[(end - num_to_fix + 1):end])
+    thresh = threshold(value.(to_consider), num_to_fix)
     idx_to_fix = findall(x -> thresh ≤ x, value.(to_consider))
     variables_to_fix = to_consider[idx_to_fix]
 
@@ -11,3 +14,5 @@ function round!(to_consider::Vector{VariableRef}, num_to_fix::Int)
     @info "Fixing: " variables_to_fix
     return fix.(variables_to_fix, 1; force=true)
 end
+
+
