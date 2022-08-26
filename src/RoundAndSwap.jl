@@ -37,7 +37,8 @@ export best_swap,
     initial_swaps,
     create_swaps!,
     evalute_sweep,
-    swap
+    swap,
+    reduce_to_consider
 # inout
 export save, load_swapper
 
