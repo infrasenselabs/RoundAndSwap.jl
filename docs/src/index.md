@@ -1,9 +1,8 @@
 # RoundAndSwap.jl
 
 
-| **Build Status**                                                                                |
-|:-----------------------------------------------------------------------------------------------:|
-| [![][GHA-img]][GHA-url] [![][codecov-img]][codecov-url] |
+
+[![][GHA-img]][GHA-url] [![][codecov-img]][codecov-url]
 
 [GHA-img]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml/badge.svg
 [GHA-url]: https://github.com/this-josh/RoundAndSwap.jl/actions/workflows/runtests.yml
