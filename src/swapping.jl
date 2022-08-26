@@ -32,7 +32,7 @@ Get the best objective value in swapper.completed_swaps
 """
 function best_objective(swapper::Swapper; ignore_end=false)
     swapper.number_of_swaps == 0 && return NaN
-    swaps = ignore_end ? swapper.completed_swaps[1:(end - 1)] : swapper.completed_swaps
+    swaps = ignore_end ? swapper.completed_swaps[1:(end-1)] : swapper.completed_swaps
     objectives = [obj.obj_value for obj in flatten(swaps) if !isnan(obj.obj_value)]
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
@@ -185,7 +185,7 @@ function swap(
     consider_swapping::Array{VariableRef};
     optimizer=nothing,
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing,
+    save_path::Union{Nothing,String}=nothing
 )
     models = make_models(model, optimizer)
     return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path)
@@ -205,7 +205,7 @@ function swap(
     models::Array{Model},
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing,
+    save_path::Union{Nothing,String}=nothing
 )
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
@@ -216,7 +216,7 @@ function swap(
         to_swap=initial_swaps(initial_fixed, consider_swapping),
         consider_swapping=consider_swapping,
         sense=objective_sense(models[1]),
-        max_swaps=max_swaps,
+        max_swaps=max_swaps
     )
     init_swap = Swap(; existing=nothing, new=nothing)
 
@@ -299,7 +299,7 @@ Only consider the num_desired_to_consider largest values in to consider. Note th
 function reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
     consider_vals = value.(to_consider)
     thresh = threshold(consider_vals, num_desired_to_consider)
-    @assert thresh!=0 "Thresh is zero, you cannot consider this many values"
+    @assert thresh != 0 "Thresh is zero, you cannot consider this many values"
     idx_to_consider = findall(x -> thresh ≤ x, consider_vals)
     return to_consider[idx_to_consider]
 end

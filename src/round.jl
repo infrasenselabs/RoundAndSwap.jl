@@ -1,6 +1,6 @@
 using JuMP
 
-threshold(values, num_above) =  minimum(sort(values)[(end-num_above+1):end])
+threshold(values, num_above) = minimum(sort(values)[(end-num_above+1):end])
 
 
 function round!(to_consider::Vector{VariableRef}, num_to_fix::Int)
