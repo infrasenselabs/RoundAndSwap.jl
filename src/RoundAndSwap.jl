@@ -27,7 +27,7 @@ export Swap,
     RSStatusCodes
 
 # round
-export round!
+export round!, threshold
 
 # swapping
 export best_swap,
