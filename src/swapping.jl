@@ -1,7 +1,7 @@
 using JuMP
 using ProgressMeter
 using Dates
-using OnlineStats
+using OnlineStats: Mean, fit!
 
 """
     best_swap(swapper::Swapper)

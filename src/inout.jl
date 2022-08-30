@@ -1,6 +1,6 @@
 using JSON
 using DataStructures
-using OnlineStats
+import OnlineStats.Mean
 
 function JSON.lower(s::Swap)
     return Dict(

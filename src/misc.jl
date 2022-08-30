@@ -1,4 +1,4 @@
-using OnlineStats
+import OnlineStats.Mean
 
 """
     flatten(to_flatten::Array{Array{Swap}})

@@ -1,7 +1,7 @@
 # structs and struct methods
 using JuMP
 using Parameters
-using OnlineStats
+import OnlineStats.Mean
 
 @enum RSStatusCodes Fixed = 100 AlreadyDone = 101
 
