@@ -189,10 +189,11 @@ function swap(
     consider_swapping::Array{VariableRef};
     optimizer=nothing,
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing
+    save_path::Union{Nothing,String}=nothing,
+    kwargs...
 )
     models = make_models(model, optimizer)
-    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path)
+    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...)
 end
 
 """
@@ -204,6 +205,8 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `models`: An array of models, one for each thread
 - `consider_swapping`: An array of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
+- `save_path`: A path to save the swapper to after each swap, isnothing(save_path) ?  don't save : save, default is nothing
+-  `auto_cpu_limit`: Whether to set a cpu time limie. Once enough feasible and infeasible solutions have been determined if there is sufficient gap in the solve time between the two this will be used to set the cpu time limit.
 """
 function swap(
     models::Array{Model},
