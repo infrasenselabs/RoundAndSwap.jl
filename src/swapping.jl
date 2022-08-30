@@ -215,6 +215,9 @@ function swap(
     save_path::Union{Nothing,String}=nothing,
     auto_cpu_limit::Bool = false
 )
+    if auto_cpu_limit
+        @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
+    end
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
     if isempty(initial_fixed)
