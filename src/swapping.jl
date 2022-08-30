@@ -213,7 +213,7 @@ function swap(
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
-    auto_cpu_limit::Bool = false
+    auto_cpu_limit::Bool=false
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
@@ -252,7 +252,7 @@ end
 - `swapper`: An already initialised swapper, this can either be clean or it can be partially complete
 """
 function swap(
-    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing,
+    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing
 )
     swapper._stop = false
     start_time = now()
