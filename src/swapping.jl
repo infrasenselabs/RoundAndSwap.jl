@@ -53,6 +53,7 @@ Solve this swap
 - `swap`: Which swap to solve
 """
 function solve!(model, swapper, swap)
+    set_cpu_limit(swapper, model)
     optimize!(model)
     swap.termination_status = termination_status(model)
     swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
@@ -245,7 +246,7 @@ end
 - `swapper`: An already initialised swapper, this can either be clean or it can be partially complete
 """
 function swap(
-    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing
+    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing,
 )
     swapper._stop = false
     start_time = now()
