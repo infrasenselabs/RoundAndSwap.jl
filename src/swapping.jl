@@ -208,7 +208,8 @@ function swap(
     models::Array{Model},
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing
+    save_path::Union{Nothing,String}=nothing,
+    auto_cpu_limit::Bool = false
 )
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
@@ -219,7 +220,8 @@ function swap(
         to_swap=initial_swaps(initial_fixed, consider_swapping),
         consider_swapping=consider_swapping,
         sense=objective_sense(models[1]),
-        max_swaps=max_swaps
+        max_swaps=max_swaps,
+        auto_cpu_limit=auto_cpu_limit
     )
     init_swap = Swap(; existing=nothing, new=nothing)
 
