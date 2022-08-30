@@ -11,6 +11,7 @@ end
 
 
 function init_mean(vals)
+    m =Mean()
     m.μ = vals[:mean]
     m.n = vals[:n]
     return m
