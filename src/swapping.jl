@@ -1,6 +1,7 @@
 using JuMP
 using ProgressMeter
 using Dates
+using OnlineStats
 
 """
     best_swap(swapper::Swapper)
@@ -99,8 +100,10 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
         end
         if swap.success isa Bool && swap.success
             num_success += 1
+            fit!(swapper._successful_run_time, swap.solve_time)
         else
             num_failed += 1
+            !isnothing(swap.solve_time) ? fit!(swapper._unsuccessful_run_time, swap.solve_time) : nothing
         end
         unfix!(get_var(model, swap.new))
         fix(get_var(model, swap.existing), 1; force=true)

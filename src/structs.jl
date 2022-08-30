@@ -1,6 +1,7 @@
 # structs and struct methods
 using JuMP
 using Parameters
+using OnlineStats
 
 @enum RSStatusCodes Fixed = 100 AlreadyDone = 101
 
@@ -61,6 +62,8 @@ An object to keep track of all the swaps
     number_of_swaps::Int = 0
     completed_swaps::Union{Array{Array{Swap}},Nothing} = []
     _stop::Bool = false
+    _successful_run_time = Mean()
+    _unsuccessful_run_time = Mean()
 end
 
 function Base.:(==)(a::Swapper, b::Swapper)
