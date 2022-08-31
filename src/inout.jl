@@ -1,5 +1,6 @@
 using JSON
 using DataStructures
+import OnlineStats.Mean
 
 function JSON.lower(s::Swap)
     return Dict(
@@ -14,6 +15,10 @@ function JSON.lower(s::Swap)
     )
 end
 
+function JSON.lower(μ::Mean)
+    return Dict("mean" => μ.μ, "n" => μ.n)
+end
+
 function save(file_name::String, s::Swapper)
     if splitext(file_name)[end] !== ".json"
         @info "Adding .json extension to file name"
@@ -23,6 +28,7 @@ function save(file_name::String, s::Swapper)
         JSON.print(f, s)
     end
 end
+
 
 function load_swapper(file_name::String)
     read_s = JSON.parsefile(file_name; dicttype=() -> DefaultDict{Symbol,Any}(Missing))
@@ -53,6 +59,9 @@ function load_swapper(file_name::String)
     read_s[:sense] =
         read_s[:sense] == "MAX_SENSE" ? MOI.OptimizationSense(1) : MOI.OptimizationSense(0)
     read_s[:max_swaps] = isnothing(read_s[:max_swaps]) ? Inf : read_s[:max_swaps]
+
+    read_s[:_successful_run_time] = init_mean(read_s[:_successful_run_time])
+    read_s[:_unsuccessful_run_time] = init_mean(read_s[:_unsuccessful_run_time])
 
     return Swapper(; NamedTuple(read_s)...)
 end

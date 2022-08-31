@@ -1,6 +1,7 @@
 using JuMP
 using ProgressMeter
 using Dates
+using OnlineStats: Mean, fit!
 
 """
     best_swap(swapper::Swapper)
@@ -52,6 +53,7 @@ Solve this swap
 - `swap`: Which swap to solve
 """
 function solve!(model, swapper, swap)
+    set_cpu_limit(swapper, model)
     optimize!(model)
     swap.termination_status = termination_status(model)
     swap.solve_time = MOI.get(model, MOI.SolveTimeSec())
@@ -99,8 +101,10 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
         end
         if swap.success isa Bool && swap.success
             num_success += 1
+            fit!(swapper._successful_run_time, swap.solve_time)
         else
             num_failed += 1
+            !isnothing(swap.solve_time) ? fit!(swapper._unsuccessful_run_time, swap.solve_time) : nothing
         end
         unfix!(get_var(model, swap.new))
         fix(get_var(model, swap.existing), 1; force=true)
@@ -185,10 +189,11 @@ function swap(
     consider_swapping::Array{VariableRef};
     optimizer=nothing,
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing
+    save_path::Union{Nothing,String}=nothing,
+    kwargs...
 )
     models = make_models(model, optimizer)
-    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path)
+    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...)
 end
 
 """
@@ -200,13 +205,19 @@ Given a model and a list of variables swap the integer values to improve the obj
 - `models`: An array of models, one for each thread
 - `consider_swapping`: An array of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
+- `save_path`: A path to save the swapper to after each swap, isnothing(save_path) ?  don't save : save, default is nothing
+-  `auto_cpu_limit`: Whether to set a cpu time limie. Once enough feasible and infeasible solutions have been determined if there is sufficient gap in the solve time between the two this will be used to set the cpu time limit.
 """
 function swap(
     models::Array{Model},
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
-    save_path::Union{Nothing,String}=nothing
+    save_path::Union{Nothing,String}=nothing,
+    auto_cpu_limit::Bool=false
 )
+    if auto_cpu_limit
+        @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
+    end
     consider_swapping = [Symbol(v) for v in consider_swapping]
     initial_fixed = fixed_variables(models[1], consider_swapping)
     if isempty(initial_fixed)
@@ -216,7 +227,8 @@ function swap(
         to_swap=initial_swaps(initial_fixed, consider_swapping),
         consider_swapping=consider_swapping,
         sense=objective_sense(models[1]),
-        max_swaps=max_swaps
+        max_swaps=max_swaps,
+        auto_cpu_limit=auto_cpu_limit
     )
     init_swap = Swap(; existing=nothing, new=nothing)
 
