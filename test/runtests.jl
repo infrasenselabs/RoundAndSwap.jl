@@ -97,7 +97,7 @@ model = make_model()
 @constraint(model, model[:a][1] ≤ 0.9)
 optimize!(model)
 consider_swapping = [model[:a][1], model[:b], model[:c], model[:d]]
-@test reduce_to_consider(consider_swapping,3) == [model[:a][1], model[:b], model[:c]]
+@test reduce_to_consider(consider_swapping, 3) == [model[:a][1], model[:b], model[:c]]
 
 @test value(model[:a][1]) == 0.9
 @test value(model[:b]) ≈ 0.1

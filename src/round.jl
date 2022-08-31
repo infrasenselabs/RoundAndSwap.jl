@@ -1,13 +1,12 @@
 using JuMP
 
-threshold(values, num_above) = minimum(sort(values)[(end-num_above+1):end])
+threshold(values, num_above) = minimum(sort(values)[(end - num_above + 1):end])
 
 function variables_over_thresh(to_consider::Vector{VariableRef}, num_to_fix::Int)
     thresh = threshold(value.(to_consider), num_to_fix)
     idx_to_fix = findall(x -> thresh ≤ x, value.(to_consider))
     return to_consider[idx_to_fix]
 end
-
 
 function round!(to_consider::Vector{VariableRef}, num_to_fix::Int)
     variables_to_fix = variables_over_thresh(to_consider, num_to_fix)
@@ -21,5 +20,5 @@ end
 
 function round!(model::Model, to_consider::Vector{String}, num_to_fix::Int)
     to_consider = variable_by_name.(model, to_consider)
-    round!(to_consider, num_to_fix)
+    return round!(to_consider, num_to_fix)
 end

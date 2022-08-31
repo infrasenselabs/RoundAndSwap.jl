@@ -33,7 +33,7 @@ Get the best objective value in swapper.completed_swaps
 """
 function best_objective(swapper::Swapper; ignore_end=false)
     swapper.number_of_swaps == 0 && return NaN
-    swaps = ignore_end ? swapper.completed_swaps[1:(end-1)] : swapper.completed_swaps
+    swaps = ignore_end ? swapper.completed_swaps[1:(end - 1)] : swapper.completed_swaps
     objectives = [obj.obj_value for obj in flatten(swaps) if !isnan(obj.obj_value)]
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
@@ -104,7 +104,11 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
             fit!(swapper._successful_run_time, swap.solve_time)
         else
             num_failed += 1
-            !isnothing(swap.solve_time) ? fit!(swapper._unsuccessful_run_time, swap.solve_time) : nothing
+            if !isnothing(swap.solve_time)
+                fit!(swapper._unsuccessful_run_time, swap.solve_time)
+            else
+                nothing
+            end
         end
         unfix!(get_var(model, swap.new))
         fix(get_var(model, swap.existing), 1; force=true)
@@ -190,10 +194,12 @@ function swap(
     optimizer=nothing,
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
-    kwargs...
+    kwargs...,
 )
     models = make_models(model, optimizer)
-    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...)
+    return swap(
+        models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...
+    )
 end
 
 """
@@ -213,7 +219,7 @@ function swap(
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
-    auto_cpu_limit::Bool=false
+    auto_cpu_limit::Bool=false,
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
@@ -228,7 +234,7 @@ function swap(
         consider_swapping=consider_swapping,
         sense=objective_sense(models[1]),
         max_swaps=max_swaps,
-        auto_cpu_limit=auto_cpu_limit
+        auto_cpu_limit=auto_cpu_limit,
     )
     init_swap = Swap(; existing=nothing, new=nothing)
 
@@ -301,7 +307,6 @@ function swap(
     Best objective : $(best_objective(swapper))")
     return best_swap(swapper), swapper
 end
-
 
 """
     reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
