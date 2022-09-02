@@ -87,6 +87,10 @@ function unfix!(variable::VariableRef)
     return set_upper_bound(variable, 1)
 end
 
+function unfix!(models::Model, swapper::Swapper)
+    unfix!([models], swapper)
+end
+
 """
     unfix!(models::Array{Model}, swapper::Swapper)
 
@@ -98,6 +102,10 @@ function unfix!(models::Array{Model}, swapper::Swapper)
             unfix!(get_var(model, var))
         end
     end
+end
+
+function fix!(models::Model, to_fix::Array{Symbol}, value=1)
+    fix!([models], to_fix, value)
 end
 
 """
