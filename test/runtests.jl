@@ -55,9 +55,6 @@ for f in ("swapper_in_loop.json", "test_swapper.json")
     @test swapper == _swapper
 end
 
-@test_throws OptimizeNotCalled objective_value(model)
-reproduce_best!(_best_swap, swapper, model)
-@test objective_value(model) == 10
 
 # Test Min
 @objective(model, Min, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
@@ -84,6 +81,10 @@ _best_swap = _best_swap[1]
 @test length(unsuccessful_swaps(swapper)) == 0
 # Print functions, check they don't error
 @test total_optimisation_time(swapper) < 0.1
+
+@test_throws OptimizeNotCalled objective_value(model)
+reproduce_best!(_best_swap, swapper, model)
+@test objective_value(model) == 4
 
 # Test max swaps
 _best_swap, swapper = swap(model, consider_swapping; max_swaps=2)
