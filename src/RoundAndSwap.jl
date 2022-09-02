@@ -13,7 +13,7 @@ const SHOW_PROGRESS_BARS = parse(Bool, get(ENV, "PROGRESS_BARS", "true"))
 # misc
 export flatten
 # model
-export successful, fixed_variables, unfix!, make_models, fix!, get_var
+export successful, fixed_variables, unfix!, make_models, fix!, get_var,reproduce_best!
 # printing
 
 # structs

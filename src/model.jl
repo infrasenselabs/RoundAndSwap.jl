@@ -145,3 +145,10 @@ function make_models(model::Model, optimizer::Union{Nothing,DataType}=nothing)
     set_optimizer.(_models, optimizer)
     return _models
 end
+
+function reproduce_best!(best::Swap, swapper::Swapper, model)
+    unfix!(model, swapper)
+    fix!(model, best.all_fixed)
+    optimize!(model)
+    @assert objective_value(model) == best.obj_value
+end
