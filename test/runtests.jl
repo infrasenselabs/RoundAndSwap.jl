@@ -39,6 +39,10 @@ _best_swap = _best_swap[1]
 @test length(swapper.completed_swaps) == 5
 @test num_swaps(swapper) == 6
 
+@test_throws OptimizeNotCalled objective_value(model)
+reproduce_best!(_best_swap, swapper, model)
+@test objective_value(model) == 10
+
 # Test restarting
 _, _short_swapper = swap(model, consider_swapping; max_swaps=3)
 models = make_models(model, HiGHS.Optimizer)
