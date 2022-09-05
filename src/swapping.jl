@@ -303,13 +303,12 @@ function swap(
     return best_swap(swapper), swapper
 end
 
-
 """
     reduce_to_consider(to_consider::Array{VariableRef}; num_desired_to_consider::Int)
 
 Only consider the num_desired_to_consider largest values in to consider. Note that to_consider shouldn't be rounded yet.
 """
-function reduce_to_consider(to_consider::Array{VariableRef}; num_to_consider::Int)
+function reduce_to_consider_number(to_consider::Array{VariableRef}; num_to_consider::Int)
     consider_vals = value.(to_consider)
     thresh = threshold(consider_vals, num_to_consider)
     @assert thresh != 0 "Thresh is zero, you cannot consider this many values"
@@ -330,7 +329,7 @@ end
 
 Only consider the percentile largest values in to consider. Note that to_consider shouldn't be rounded yet.
 """
-function reduce_to_consider(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
+function reduce_to_consider_percentile(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
     num_variables = length(to_consider)
     consider_vals = value.(to_consider)
     non_zero_idx = consider_vals .> 0

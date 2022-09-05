@@ -38,7 +38,8 @@ export best_swap,
     create_swaps!,
     evalute_sweep,
     swap,
-    reduce_to_consider
+    reduce_to_consider_number,
+    reduce_to_consider_percentile
 # inout
 export save, load_swapper
 
