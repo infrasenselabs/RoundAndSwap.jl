@@ -331,6 +331,9 @@ Only consider the percentile largest values in to consider. Note that to_conside
 """
 function reduce_to_consider(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
     consider_vals = value.(to_consider)
+    non_zero_idx = consider_vals .> 0
+    to_consider = to_consider[non_zero_idx]
+    consider_vals = consider_vals[non_zero_idx]
     while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
         @info "Too few values above percentile $percentile, reducing percentile by 10"
         percentile -= 10
