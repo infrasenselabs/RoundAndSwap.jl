@@ -334,6 +334,9 @@ function reduce_to_consider(to_consider::Array{VariableRef}; percentile::Real, m
     while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
         @info "Too few values above percentile $percentile, reducing percentile by 10"
         percentile -= 10
+        if percentile == 0
+            error("Percentile is 0, you cannot consider this many values, reduce min_to_consider")
+        end
     end
     idx_to_consider = _values_above_percentile(consider_vals, percentile)
     reduced_to_consider = to_consider[idx_to_consider]
