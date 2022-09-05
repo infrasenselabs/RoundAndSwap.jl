@@ -103,7 +103,13 @@ model = make_model()
 @constraint(model, model[:a][1] ≤ 0.9)
 optimize!(model)
 consider_swapping = [model[:a][1], model[:b], model[:c], model[:d]]
-@test reduce_to_consider(consider_swapping,3) == [model[:a][1], model[:b], model[:c]]
+to_consider= consider_swapping
+@test reduce_to_consider_number(consider_swapping; num_to_consider=3) == [model[:a][1], model[:b], model[:c]]
+
+@test reduce_to_consider_percentile(consider_swapping; percentile = 90) == [model[:c]]
+@test reduce_to_consider_percentile(consider_swapping; percentile = 90, min_to_consider=2) == [model[:a][1], model[:c]]
+@test reduce_to_consider_percentile(consider_swapping; percentile = 90, min_to_consider=20) == [model[:a][1], model[:b], model[:c]]
+
 
 @test value(model[:a][1]) == 0.9
 @test value(model[:b]) ≈ 0.1
