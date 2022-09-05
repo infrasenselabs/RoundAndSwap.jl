@@ -87,6 +87,10 @@ function unfix!(variable::VariableRef)
     return set_upper_bound(variable, 1)
 end
 
+function unfix!(models::Model, swapper::Swapper)
+    unfix!([models], swapper)
+end
+
 """
     unfix!(models::Array{Model}, swapper::Swapper)
 
@@ -98,6 +102,10 @@ function unfix!(models::Array{Model}, swapper::Swapper)
             unfix!(get_var(model, var))
         end
     end
+end
+
+function fix!(models::Model, to_fix::Array{Symbol}, value=1)
+    fix!([models], to_fix, value)
 end
 
 """
@@ -136,4 +144,11 @@ function make_models(model::Model, optimizer::Union{Nothing,DataType}=nothing)
     ]
     set_optimizer.(_models, optimizer)
     return _models
+end
+
+function reproduce_best!(best::Swap, swapper::Swapper, model)
+    unfix!(model, swapper)
+    fix!(model, best.all_fixed)
+    optimize!(model)
+    @assert objective_value(model) == best.obj_value
 end

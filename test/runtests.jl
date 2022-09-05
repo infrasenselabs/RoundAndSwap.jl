@@ -39,6 +39,7 @@ _best_swap = _best_swap[1]
 @test length(swapper.completed_swaps) == 5
 @test num_swaps(swapper) == 6
 
+
 # Test restarting
 _, _short_swapper = swap(model, consider_swapping; max_swaps=3)
 models = make_models(model, HiGHS.Optimizer)
@@ -53,6 +54,7 @@ for f in ("swapper_in_loop.json", "test_swapper.json")
     _swapper = load_swapper(f)
     @test swapper == _swapper
 end
+
 
 # Test Min
 @objective(model, Min, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
@@ -79,6 +81,10 @@ _best_swap = _best_swap[1]
 @test length(unsuccessful_swaps(swapper)) == 0
 # Print functions, check they don't error
 @test total_optimisation_time(swapper) < 0.1
+
+@test_throws OptimizeNotCalled objective_value(model)
+reproduce_best!(_best_swap, swapper, model)
+@test objective_value(model) == 4
 
 # Test max swaps
 _best_swap, swapper = swap(model, consider_swapping; max_swaps=2)
