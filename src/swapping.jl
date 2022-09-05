@@ -321,6 +321,7 @@ end
 
 function _values_above_percentile(values::Vector{Float64}, percentile::Real)
     thresh = quantile(values, percentile/100)
+    thresh == 0 && @warn "Threshold is zero, consider a higher percentile"
     return findall(x -> thresh ≤ x, values)
 end
 
