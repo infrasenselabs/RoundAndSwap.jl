@@ -305,14 +305,38 @@ end
 
 
 """
-    reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+    reduce_to_consider(to_consider::Array{VariableRef}; num_desired_to_consider::Int)
 
 Only consider the num_desired_to_consider largest values in to consider. Note that to_consider shouldn't be rounded yet.
 """
-function reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+function reduce_to_consider(to_consider::Array{VariableRef}; num_to_consider::Int)
     consider_vals = value.(to_consider)
-    thresh = threshold(consider_vals, num_desired_to_consider)
+    thresh = threshold(consider_vals, num_to_consider)
     @assert thresh != 0 "Thresh is zero, you cannot consider this many values"
     idx_to_consider = findall(x -> thresh ≤ x, consider_vals)
-    return to_consider[idx_to_consider]
+    reduced_to_consider = to_consider[idx_to_consider]
+	@info "Gone from considering $(length(to_consider)) to $(length(reduced_to_consider)) variables"
+    return reduced_to_consider
+end
+
+function _values_above_percentile(values::Vector{Float64}, percentile::Real)
+    thresh = quantile(values, percentile/100)
+    return findall(x -> thresh ≤ x, values)
+end
+
+"""
+    reduce_to_consider(to_consider::Array{VariableRef}; percentile::Int)
+
+Only consider the percentile largest values in to consider. Note that to_consider shouldn't be rounded yet.
+"""
+function reduce_to_consider(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
+    consider_vals = value.(to_consider)
+    while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
+        @info "Too few values above percentile $percentile, reducing percentile by 10"
+        percentile -= 10
+    end
+    idx_to_consider = _values_above_percentile(consider_vals, percentile)
+    reduced_to_consider = to_consider[idx_to_consider]
+	@info "Gone from considering $(length(to_consider)) to $(length(reduced_to_consider)) variables"
+    return reduced_to_consider
 end
