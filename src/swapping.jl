@@ -64,11 +64,11 @@ function solve!(model, swapper, swap)
 end
 
 """
-    try_swapping!(models::Array{Model}, swapper::Swapper)
+    _try_swapping!(models::Array{Model}, swapper::Swapper)
 
 Given a model and the swapper, try all swaps in swapper.to_swap
 """
-function try_swapping!(models::Array{Model}, swapper::Swapper)
+function _try_swapping!(models::Array{Model}, swapper::Swapper)
     push!(swapper.completed_swaps, [])
     p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
     num_success = 0
@@ -115,6 +115,22 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     end
     swapper.completed_swaps[end] = swaps_complete
     return swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
+end
+
+function try_swapping!(models::Array{Model}, swapper::Swapper)
+    @show swapper._stop
+    if swapper._stop
+        return 
+    end
+    try
+        _try_swapping!(models, swapper)
+    catch
+        stacktrace(catch_backtrace())
+        swapper._stop = true
+        @error "InterruptException, will terminate swaps"
+    end 
+    @show swapper._stop
+
 end
 
 """
