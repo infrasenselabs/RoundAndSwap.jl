@@ -118,18 +118,15 @@ function _try_swapping!(models::Array{Model}, swapper::Swapper)
 end
 
 function try_swapping!(models::Array{Model}, swapper::Swapper)
-    @show swapper._stop
     if swapper._stop
         return 
     end
     try
         _try_swapping!(models, swapper)
     catch
-        stacktrace(catch_backtrace())
         swapper._stop = true
         @error "InterruptException, will terminate swaps"
     end 
-    @show swapper._stop
 
 end
 
