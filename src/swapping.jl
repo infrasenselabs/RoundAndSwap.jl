@@ -63,17 +63,8 @@ function solve!(model, swapper, swap)
     return swap.all_fixed = fixed_variables(model, swapper)
 end
 
-"""
-    _try_swapping!(models::Array{Model}, swapper::Swapper)
-
-Given a model and the swapper, try all swaps in swapper.to_swap
-"""
-function _try_swapping!(models::Array{Model}, swapper::Swapper)
-    push!(swapper.completed_swaps, [])
+function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete)
     p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
-    num_success = 0
-    num_failed = 0
-    swaps_complete = []
     for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
@@ -113,22 +104,32 @@ function _try_swapping!(models::Array{Model}, swapper::Swapper)
             p; showvalues=[(:num_success, num_success), (:num_failed, num_failed)]
         )
     end
-    swapper.completed_swaps[end] = swaps_complete
-    return swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
 end
 
+"""
+    try_swapping!(models::Array{Model}, swapper::Swapper)
+
+Given a model and the swapper, try all swaps in swapper.to_swap
+"""
 function try_swapping!(models::Array{Model}, swapper::Swapper)
     if swapper._stop
         return 
     end
+    push!(swapper.completed_swaps, [])
+    num_success = 0
+    num_failed = 0
+    swaps_complete = []
     try
-        _try_swapping!(models, swapper)
-    catch
+        swapping_loop!(models, swapper, num_success, num_failed, swaps_complete)
+    catch InterruptException
         swapper._stop = true
         @error "InterruptException, will terminate swaps"
     end 
 
+    swapper.completed_swaps[end] = swaps_complete
+    return swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
 end
+
 
 """
     initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
