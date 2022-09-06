@@ -44,6 +44,7 @@ _best_swap = _best_swap[1]
 _, _short_swapper = swap(model, consider_swapping; max_swaps=3)
 models = make_models(model, HiGHS.Optimizer)
 _short_swapper.max_swaps = Inf
+_short_swapper._stop = false
 _b, _s = swap(models, _short_swapper)
 @test _s == swapper
 @test _b[1] == _best_swap
