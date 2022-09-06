@@ -2,6 +2,7 @@ using JuMP
 using ProgressMeter
 using Dates
 using OnlineStats: Mean, fit!
+using Statistics
 
 """
     best_swap(swapper::Swapper)
@@ -302,16 +303,50 @@ function swap(
     return best_swap(swapper), swapper
 end
 
-
 """
-    reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+    reduce_to_consider(to_consider::Array{VariableRef}; num_desired_to_consider::Int)
 
 Only consider the num_desired_to_consider largest values in to consider. Note that to_consider shouldn't be rounded yet.
 """
-function reduce_to_consider(to_consider::Array{VariableRef}, num_desired_to_consider::Int)
+function reduce_to_consider_number(to_consider::Array{VariableRef}; num_to_consider::Int)
     consider_vals = value.(to_consider)
-    thresh = threshold(consider_vals, num_desired_to_consider)
+    thresh = threshold(consider_vals, num_to_consider)
     @assert thresh != 0 "Thresh is zero, you cannot consider this many values"
     idx_to_consider = findall(x -> thresh ≤ x, consider_vals)
-    return to_consider[idx_to_consider]
+    reduced_to_consider = to_consider[idx_to_consider]
+	@info "Gone from considering $(length(to_consider)) to $(length(reduced_to_consider)) variables"
+    return reduced_to_consider
+end
+
+function _values_above_percentile(values::Vector{Float64}, percentile::Real)
+    thresh = quantile(values, percentile/100)
+    thresh == 0 && @warn "Threshold is zero, consider a higher percentile"
+    return findall(x -> thresh ≤ x, values)
+end
+
+"""
+    reduce_to_consider(to_consider::Array{VariableRef}; percentile::Int)
+
+Only consider the percentile largest values in to consider. Note that to_consider shouldn't be rounded yet.
+"""
+function reduce_to_consider_percentile(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
+    num_variables = length(to_consider)
+    consider_vals = value.(to_consider)
+    non_zero_idx = consider_vals .> 0
+    to_consider = to_consider[non_zero_idx]
+    consider_vals = consider_vals[non_zero_idx]
+    all(consider_vals .== consider_vals[1]) && @info "All values are the same, cannot reduce using percentile" && return to_consider
+    while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
+        @info "Too few values above percentile $percentile, reducing percentile by 10"
+        percentile -= 10
+        if percentile < 0
+            @warn "Percentile is < 0, you cannot consider this many values you should reduce min_to_consider, for now will return all non-zeros"
+            percentile = 0
+            break
+        end
+    end
+    idx_to_consider = _values_above_percentile(consider_vals, percentile)
+    reduced_to_consider = to_consider[idx_to_consider]
+	@info "Gone from considering $(num_variables) to $(length(reduced_to_consider)) variables, note: $(num_variables - length(non_zero_idx)) were removed as they were zero"
+    return reduced_to_consider
 end
