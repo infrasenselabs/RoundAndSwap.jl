@@ -275,7 +275,7 @@ function swap(
         better = evalute_sweep(swapper)
         while !isempty(better) && !swapper._stop
             sweep_number += 1
-            @info "Running sweep $sweep_number"
+            @debug "Running sweep $sweep_number"
             bet = pop!(better)
             # set to better scenario
             unfix!(models, swapper)
