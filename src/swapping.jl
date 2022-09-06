@@ -270,8 +270,7 @@ end
 """
 function swap(
     models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing
-)
-    swapper._stop = false
+)   
     start_time = now()
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
