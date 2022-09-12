@@ -131,7 +131,6 @@ consider_swapping = [model[:a][1], model[:b], model[:c], model[:d]]
 @test_throws ErrorException round!(consider_swapping, 1)
 
 
-
 function make_model_3()
     model = Model(HiGHS.Optimizer)
     set_silent(model)
@@ -140,18 +139,22 @@ function make_model_3()
     @variable(model, 0 ≤ c ≤ 1)
     @variable(model, 0 ≤ d ≤ 1)
     @variable(model, 0 ≤ e ≤ 1)
+    @variable(model, 0 ≤ f ≤ 1)
 
-    @objective(model, Max, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e))+ (5 * (d + a[1])))
+    @objective(model, Max, 
+    (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e))+ (5 * (e + a[1]))
+    )
 
     @constraint(model, a[1] + b + c + d + e == 3)
 
     return model
 end
+
 model = make_model_3()
 optimize!(model)
 fix(model[:b], 1; force=true)
 fix(model[:c], 1; force=true)
-fix(model[:e], 1; force=true)
+fix(model[:d], 1; force=true)
 a, b, c, d,e = [model[:a][1]], model[:b], model[:c], model[:d], model[:e]
 
 consider_swapping = [a[1], b, c, d, e]
@@ -159,6 +162,44 @@ _best_swap, swapper = swap(model, consider_swapping)
 
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
-@test _best_swap.all_fixed[1] in [Symbol("a[1]"),:c,:d]
-@test _best_swap.all_fixed[2] in [Symbol("a[1]"),:c,:d]
-@test _best_swap.all_fixed[3] in [Symbol("a[1]"),:c,:d]
+@test _best_swap.obj_value == 20
+@test _best_swap.all_fixed[1] in [Symbol("a[1]"),:c,:e]
+@test _best_swap.all_fixed[2] in [Symbol("a[1]"),:c,:e]
+@test _best_swap.all_fixed[3] in [Symbol("a[1]"),:c,:e]
+
+function make_model_4()
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    @variable(model, 0 ≤ a[1:3] ≤ 1)
+    @variable(model, 0 ≤ b ≤ 1)
+    @variable(model, 0 ≤ c ≤ 1)
+    @variable(model, 0 ≤ d ≤ 1)
+    @variable(model, 0 ≤ e ≤ 1)
+    @variable(model, 0 ≤ f ≤ 1)
+
+    @objective(model, Max, 
+    (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e))+ (5 * (e + f)+(6 * (f + a[1])))
+    )
+
+    @constraint(model, a[1] + b + c + d + e + f == 4)
+
+    return model
+end
+model = make_model_4()
+optimize!(model)
+fix(model[:b], 1; force=true)
+fix(model[:c], 1; force=true)
+fix(model[:d], 1; force=true)
+fix(model[:e], 1; force=true)
+a, b, c, d,e, f = [model[:a][1]], model[:b], model[:c], model[:d], model[:e], model[:f]
+
+consider_swapping = [a[1], b, c, d, e, f]
+_best_swap, swapper = swap(model, consider_swapping)
+
+@test length(_best_swap) == 1
+_best_swap = _best_swap[1]
+@test _best_swap.obj_value == 32
+@test _best_swap.all_fixed[1] in [Symbol("a[1]"),:c,:e,:f]
+@test _best_swap.all_fixed[2] in [Symbol("a[1]"),:c,:e,:f]
+@test _best_swap.all_fixed[3] in [Symbol("a[1]"),:c,:e,:f]
+@test _best_swap.all_fixed[4] in [Symbol("a[1]"),:c,:e,:f]
