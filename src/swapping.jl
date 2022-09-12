@@ -37,6 +37,8 @@ function best_objective(swapper::Swapper; ignore_end=false)
     swapper.number_of_swaps == 0 && return NaN
     swaps = ignore_end ? swapper.completed_swaps[1:(end-1)] : swapper.completed_swaps
     objectives = [obj.obj_value for obj in flatten(swaps) if !isnan(obj.obj_value)]
+    isempty(objectives) && return NaN
+    
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
     else
