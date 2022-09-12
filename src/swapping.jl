@@ -152,6 +152,17 @@ function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
 end
 
 """
+    create_swaps!(swapper::Swapper, to_swap::Array{Symbol})
+
+Given the previously completed swaps, create a list of new swaps
+"""
+function create_swaps!(swapper::Swapper, to_swap::Array{Symbol})
+    for _to_swap in to_swap
+        create_swaps!(swapper, _to_swap)
+    end
+end
+
+"""
     create_swaps!(swapper::Swapper, to_swap::Symbol)
 
 Given the previously completed swaps, create a list of new swaps
@@ -295,8 +306,6 @@ function swap(
             fix!(models, bet.all_fixed)
             to_swap =
                 bet.all_fixed == [bet.new] ? [bet.new] : setdiff(bet.all_fixed, [bet.new])
-            to_swap = to_swap[1]
-            #* for var in to_swap
             create_swaps!(swapper, to_swap)
             try_swapping!(models, swapper)
             # ! if none left we get an error
