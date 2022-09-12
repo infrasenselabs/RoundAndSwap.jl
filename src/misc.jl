@@ -18,7 +18,7 @@ function init_mean(vals)
     return m
 end
 
-function _derive_cpu_limit(swapper::Swapper, required_swaps::Int=40)
+function _derive_cpu_limit(swapper::Swapper, required_swaps::Int=20)
     if swapper._successful_run_time.n > required_swaps &&
        swapper._unsuccessful_run_time.n > required_swaps &&
        swapper._successful_run_time.μ * 1.5 < swapper._unsuccessful_run_time.μ
