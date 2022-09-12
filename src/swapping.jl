@@ -132,23 +132,43 @@ end
 
 
 """
-    initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
+    initial_swaps(fixed_variables::Array{Symbol}, consider_swapping::Array{Symbol})
 
 Given the initial state, create a list of initial swaps
+For all currently fixed, consider_swapping with all variables to consider
+wFixed = a
+consider = a,b,c,d
+Swaps([
+    a -> b,
+    a -> c,
+    a -> d
+])
+
 """
-function initial_swaps(to_swap::Array{Symbol}, to_swap_with::Array{Symbol})
+function initial_swaps(fixed_variables::Array{Symbol}, consider_swapping::Array{Symbol})
     # would easily refactor into create swaps
     initial_swaps = []
     # can be one loop
-    for existing in to_swap
-        for new in to_swap_with
-            if existing == new
+    for currently_fixed in fixed_variables
+        for consider in consider_swapping
+            if currently_fixed == consider
                 continue
             end
-            push!(initial_swaps, Swap(; existing=existing, new=new))
+            push!(initial_swaps, Swap(; existing=currently_fixed, new=consider))
         end
     end
     return initial_swaps
+end
+
+"""
+    create_swaps!(swapper::Swapper, to_swap::Array{Symbol})
+
+Given the previously completed swaps, create a list of new swaps
+"""
+function create_swaps!(swapper::Swapper, to_swap::Array{Symbol})
+    for _to_swap in to_swap
+        create_swaps!(swapper, _to_swap)
+    end
 end
 
 """
@@ -295,8 +315,6 @@ function swap(
             fix!(models, bet.all_fixed)
             to_swap =
                 bet.all_fixed == [bet.new] ? [bet.new] : setdiff(bet.all_fixed, [bet.new])
-            to_swap = to_swap[1]
-            #* for var in to_swap
             create_swaps!(swapper, to_swap)
             try_swapping!(models, swapper)
             # ! if none left we get an error
