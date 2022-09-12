@@ -3,6 +3,9 @@ using JuMP
 threshold(values, num_above) = minimum(sort(values)[(end-num_above+1):end])
 
 function variables_over_thresh(to_consider::Vector{VariableRef}, num_to_fix::Int)
+    if num_to_fix == 0
+        return []
+    end
     thresh = threshold(value.(to_consider), num_to_fix)
     idx_to_fix = findall(x -> thresh ≤ x, value.(to_consider))
     return to_consider[idx_to_fix]
