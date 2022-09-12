@@ -100,15 +100,17 @@ _best_swap, swapper = swap(model, consider_swapping)
 
 @test model[[:c, :b]] == [c, b]
 
-Random.seed!(42)
-_best_swap, swapper = swap(model, consider_swapping; max_swaps=6, shuffle=true)
-expected_swaps =  [[Symbol("a[1]"), :d],nothing,
-[:b, :c],
-[Symbol("a[1]"), :b],
-[:c, :d],
-nothing]
-for (idx,s) in enumerate(swapper.completed_swaps[2])
-    @test s.all_fixed == expected_swaps[idx]
+if VERSION >= v"1.7"
+    Random.seed!(42)
+    _best_swap, swapper = swap(model, consider_swapping; max_swaps=6, shuffle=true)
+    expected_swaps =  [[Symbol("a[1]"), :d],nothing,
+    [:b, :c],
+    [Symbol("a[1]"), :b],
+    [:c, :d],
+    nothing]
+    for (idx,s) in enumerate(swapper.completed_swaps[2])
+        @test s.all_fixed == expected_swaps[idx]
+    end
 end
 
 model = make_model()
