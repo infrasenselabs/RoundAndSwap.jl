@@ -27,6 +27,7 @@ JuMP = "1"
 OnlineStats = "1"
 Parameters = "0.12"
 ProgressMeter = "1"
+Random = "0.3"
 julia = "1.6"
 
 [extras]
