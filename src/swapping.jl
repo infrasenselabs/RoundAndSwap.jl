@@ -64,7 +64,7 @@ function solve!(model, swapper, swap)
     return swap.all_fixed = fixed_variables(model, swapper)
 end
 
-function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; shuffle)
+function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; shuffle=false)
     p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
     shuffle && Random.shuffle!(swapper.to_swap)
     for swap in swapper.to_swap
@@ -255,7 +255,7 @@ function swap(
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
     auto_cpu_limit::Bool=false,
-    shuffle = false
+    shuffle::Bool = false
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
