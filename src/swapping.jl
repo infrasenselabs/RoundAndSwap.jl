@@ -3,6 +3,7 @@ using ProgressMeter
 using Dates
 using OnlineStats: Mean, fit!
 using Statistics
+using Random
 
 """
     best_swap(swapper::Swapper)
@@ -63,8 +64,9 @@ function solve!(model, swapper, swap)
     return swap.all_fixed = fixed_variables(model, swapper)
 end
 
-function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete)
+function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; shuffle)
     p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
+    shuffle && Random.shuffle!(swapper.to_swap)
     for swap in swapper.to_swap
         model = models[Threads.threadid()]
         swapper.number_of_swaps += 1
@@ -111,7 +113,7 @@ end
 
 Given a model and the swapper, try all swaps in swapper.to_swap
 """
-function try_swapping!(models::Array{Model}, swapper::Swapper)
+function try_swapping!(models::Array{Model}, swapper::Swapper; kwargs...)
     if swapper._stop
         return 
     end
@@ -120,7 +122,7 @@ function try_swapping!(models::Array{Model}, swapper::Swapper)
     num_failed = 0
     swaps_complete = []
     try
-        swapping_loop!(models, swapper, num_success, num_failed, swaps_complete)
+        swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; kwargs...)
     catch InterruptException
         swapper._stop = true
         @error "InterruptException, will terminate swaps"
@@ -248,7 +250,8 @@ function swap(
     consider_swapping::Array{VariableRef};
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
-    auto_cpu_limit::Bool=false
+    auto_cpu_limit::Bool=false,
+    shuffle = false
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
@@ -271,7 +274,7 @@ function swap(
     push!(swapper.completed_swaps, [])
     swapper.completed_swaps[end] = [init_swap]
     # Try swapping based on initially fixed
-    try_swapping!(models, swapper)
+    try_swapping!(models, swapper, shuffle = shuffle)
     if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
         @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
