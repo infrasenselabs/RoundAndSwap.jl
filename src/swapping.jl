@@ -317,11 +317,6 @@ function swap(
                 bet.all_fixed == [bet.new] ? [bet.new] : setdiff(bet.all_fixed, [bet.new])
             create_swaps!(swapper, to_swap)
             try_swapping!(models, swapper)
-            # ! if none left we get an error
-            # if isempty(to_swap)
-            #     @warn to_swap
-            #     continue
-            # end
             !isnothing(save_path) && save(save_path, swapper)
             better = [better; evalute_sweep(swapper)...]
         end
