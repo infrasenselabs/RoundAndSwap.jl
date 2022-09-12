@@ -123,9 +123,13 @@ function try_swapping!(models::Array{Model}, swapper::Swapper; kwargs...)
     swaps_complete = []
     try
         swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; kwargs...)
-    catch InterruptException
-        swapper._stop = true
-        @error "InterruptException, will terminate swaps"
+    catch err 
+        if isa(err, InterruptException)
+            swapper._stop = true
+            @error "InterruptException, will terminate swaps"
+        else
+            rethrow(err)
+        end
     end 
 
     swapper.completed_swaps[end] = swaps_complete
