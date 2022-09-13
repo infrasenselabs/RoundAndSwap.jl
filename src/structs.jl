@@ -3,7 +3,7 @@ using JuMP
 using Parameters
 import OnlineStats.Mean
 
-@enum RSStatusCodes Fixed = 100 AlreadyDone = 101
+@enum RSStatusCodes Fixed = 100 AlreadyDone = 101 NotStarted
 
 """
     Swap
@@ -26,7 +26,7 @@ An objecct to keep track of a swap
     obj_value::Real = NaN
     success::Union{Bool,Nothing} = nothing
     all_fixed::Union{Array{Symbol},Nothing} = nothing
-    termination_status::Union{RSStatusCodes,TerminationStatusCode,Nothing} = nothing
+    termination_status::Union{RSStatusCodes,TerminationStatusCode} = NotStarted
     solve_time::Union{Real,Nothing} = nothing
     swap_number::Union{Real,Nothing} = nothing
 end
