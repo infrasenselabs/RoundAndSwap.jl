@@ -2,7 +2,7 @@ using Test
 using JuMP
 using HiGHS
 using RoundAndSwap
-
+using Random
 function make_model()
     model = Model(HiGHS.Optimizer)
     set_silent(model)
@@ -99,6 +99,19 @@ _best_swap, swapper = swap(model, consider_swapping)
 @test status_codes(swapper) == [INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE, INFEASIBLE]
 
 @test model[[:c, :b]] == [c, b]
+
+if VERSION >= v"1.7"
+    Random.seed!(42)
+    _best_swap, swapper = swap(model, consider_swapping; max_swaps=6, shuffle=true)
+    expected_swaps =  [[Symbol("a[1]"), :d],nothing,
+    [:b, :c],
+    [Symbol("a[1]"), :b],
+    [:c, :d],
+    nothing]
+    for (idx,s) in enumerate(swapper.completed_swaps[2])
+        @test s.all_fixed == expected_swaps[idx]
+    end
+end
 
 model = make_model()
 @constraint(model, model[:a][1] ≤ 0.9)
