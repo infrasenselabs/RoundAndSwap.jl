@@ -282,7 +282,7 @@ function swap(
     # Try swapping based on initially fixed
     try_swapping!(models, swapper, shuffle = shuffle)
     if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
-        @info "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
+        @warn "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
     end
     return swap(models, swapper; save_path=save_path)
@@ -335,8 +335,6 @@ function swap(
     Ran for        : $(round(run_time, Dates.Second))
     Optimised for  : $(total_optimisation_time(swapper)) seconds
     Best objective : $(best_objective(swapper))")
-    _best_swap = best_swap(swapper)
-    isnan(_best_swap) && @warn("Failed to run a single succesful swap, try to provide a feasible starting point.")
     return best_swap(swapper), swapper
 end
 
@@ -372,7 +370,12 @@ function reduce_to_consider_percentile(to_consider::Array{VariableRef}; percenti
     non_zero_idx = consider_vals .> 0
     to_consider = to_consider[non_zero_idx]
     consider_vals = consider_vals[non_zero_idx]
-    all(consider_vals .== consider_vals[1]) && @info "All values are the same, cannot reduce using percentile" && return to_consider
+    @show all(consider_vals .== consider_vals[1]) 
+    @info "All values are the same, cannot reduce using percentile"
+    if all(consider_vals .== consider_vals[1])
+         @info "All values are the same, cannot reduce using percentile"
+         return to_consider
+    end
     while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
         @info "Too few values above percentile $percentile, reducing percentile by 10"
         percentile -= 10
