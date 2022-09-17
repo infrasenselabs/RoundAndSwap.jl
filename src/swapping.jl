@@ -335,6 +335,8 @@ function swap(
     Ran for        : $(round(run_time, Dates.Second))
     Optimised for  : $(total_optimisation_time(swapper)) seconds
     Best objective : $(best_objective(swapper))")
+    _best_swap = best_swap(swapper)
+    isnan(_best_swap) && @warn("Failed to run a single succesful swap, try to provide a feasible starting point.")
     return best_swap(swapper), swapper
 end
 
