@@ -240,24 +240,25 @@ function swap(
 end
 
 """
-    swap(models::Array{Model}, consider_swapping::Array{VariableRef}; max_swaps = Inf, optimizer = nothing)
+    swap(models::Vector{Model}, consider_swapping::Vector{VariableRef}; max_swaps = Inf, optimizer = nothing)
 
 Given a model and a list of variables swap the integer values to improve the objective function
 
 # Arguments:
-- `models`: An array of models, one for each thread
-- `consider_swapping`: An array of variables to consider swapping
+- `models`: An Vector of models, one for each thread
+- `consider_swapping`: An Vector of variables to consider swapping
 - `max_swaps`: The maximum number of swaps, default is Inf
 - `save_path`: A path to save the swapper to after each swap, isnothing(save_path) ?  don't save : save, default is nothing
 -  `auto_cpu_limit`: Whether to set a cpu time limie. Once enough feasible and infeasible solutions have been determined if there is sufficient gap in the solve time between the two this will be used to set the cpu time limit.
 """
 function swap(
-    models::Array{Model},
-    consider_swapping::Array{VariableRef};
-    max_swaps=Inf,
+    models::Vector{Model},
+    consider_swapping::Vector{VariableRef};
+    max_swaps::Real=Inf,
     save_path::Union{Nothing,String}=nothing,
     auto_cpu_limit::Bool=false,
-    shuffle::Bool = false
+    shuffle::Bool = false,
+    kwargs...
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
@@ -296,7 +297,7 @@ end
 - `swapper`: An already initialised swapper, this can either be clean or it can be partially complete
 """
 function swap(
-    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing
+    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing, kwargs...
 )   
     start_time = now()
     # Given swaps which improved initial, try to swap them
