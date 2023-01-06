@@ -23,7 +23,7 @@
 
 
 
-`RoundAndSwap.jl` is a library which implements the Round and Swap algorithm
+`RoundAndSwap.jl` is a library which implements the Round and Swap algorithm, this implementation was inspired by Filippo Pecci's usage in [Bounds and Convex Heuristics for Bi-Objective Sensor Placement in Water Networks](https://arxiv.org/abs/2207.04897).
 
 
 ## Getting started
