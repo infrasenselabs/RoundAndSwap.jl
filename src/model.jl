@@ -88,7 +88,7 @@ function unfix!(variable::VariableRef)
 end
 
 function unfix!(models::Model, swapper::Swapper)
-    unfix!([models], swapper)
+    return unfix!([models], swapper)
 end
 
 """
@@ -105,7 +105,7 @@ function unfix!(models::Array{Model}, swapper::Swapper)
 end
 
 function fix!(models::Model, to_fix::Array{Symbol}, value=1)
-    fix!([models], to_fix, value)
+    return fix!([models], to_fix, value)
 end
 
 """
@@ -139,17 +139,14 @@ function make_models(model::Model, optimizer::Union{Nothing,DataType}=nothing)
     optimizer = !isnothing(optimizer) ? optimizer : solver_dict[solver_name(model)]
     nthreads = 1 # Threads.nthreads()
     _models = [copy(model) for _ in 1:nthreads]
-    [
-        MOI.set(_models[ii], MOI.Name(), "Model for thread: $ii") for
-        ii in 1:nthreads
-    ]
+    [MOI.set(_models[ii], MOI.Name(), "Model for thread: $ii") for ii in 1:nthreads]
     set_optimizer.(_models, optimizer)
     return _models
 end
 
-function reproduce_best!(best::Swap, swapper::Swapper, model; check_identical::Bool = true)
+function reproduce_best!(best::Swap, swapper::Swapper, model; check_identical::Bool=true)
     unfix!(model, swapper)
     fix!(model, best.all_fixed)
     optimize!(model)
-    check_identical && @assert objective_value(model) == best.obj_value
+    return check_identical && @assert objective_value(model) == best.obj_value
 end

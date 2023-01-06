@@ -29,7 +29,6 @@ function save(file_name::String, s::Swapper)
     end
 end
 
-
 function load_swapper(file_name::String)
     read_s = JSON.parsefile(file_name; dicttype=() -> DefaultDict{Symbol,Any}(Missing))
 

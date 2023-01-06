@@ -35,10 +35,10 @@ Get the best objective value in swapper.completed_swaps
 """
 function best_objective(swapper::Swapper; ignore_end=false)
     swapper.number_of_swaps == 0 && return NaN
-    swaps = ignore_end ? swapper.completed_swaps[1:(end-1)] : swapper.completed_swaps
+    swaps = ignore_end ? swapper.completed_swaps[1:(end - 1)] : swapper.completed_swaps
     objectives = [obj.obj_value for obj in flatten(swaps) if !isnan(obj.obj_value)]
     isempty(objectives) && return NaN
-    
+
     if swapper.sense == MAX_SENSE
         return maximum(objectives)
     else
@@ -66,7 +66,9 @@ function solve!(model, swapper, swap)
     return swap.all_fixed = fixed_variables(model, swapper)
 end
 
-function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; shuffle=false)
+function swapping_loop!(
+    models, swapper, num_success, num_failed, swaps_complete; shuffle=false
+)
     p = Progress(length(swapper.to_swap); enabled=SHOW_PROGRESS_BARS)
     shuffle && Random.shuffle!(swapper.to_swap)
     for swap in swapper.to_swap
@@ -100,7 +102,11 @@ function swapping_loop!(models, swapper, num_success, num_failed, swaps_complete
             fit!(swapper._successful_run_time, swap.solve_time)
         else
             num_failed += 1
-            !isnothing(swap.solve_time) ? fit!(swapper._unsuccessful_run_time, swap.solve_time) : nothing
+            if !isnothing(swap.solve_time)
+                fit!(swapper._unsuccessful_run_time, swap.solve_time)
+            else
+                nothing
+            end
         end
         unfix!(get_var(model, swap.new))
         fix(get_var(model, swap.existing), 1; force=true)
@@ -117,7 +123,7 @@ Given a model and the swapper, try all swaps in swapper.to_swap
 """
 function try_swapping!(models::Array{Model}, swapper::Swapper; kwargs...)
     if swapper._stop
-        return 
+        return nothing
     end
     push!(swapper.completed_swaps, [])
     num_success = 0
@@ -125,19 +131,18 @@ function try_swapping!(models::Array{Model}, swapper::Swapper; kwargs...)
     swaps_complete = []
     try
         swapping_loop!(models, swapper, num_success, num_failed, swaps_complete; kwargs...)
-    catch err 
+    catch err
         if isa(err, InterruptException)
             swapper._stop = true
             @error "InterruptException, will terminate swaps"
         else
             rethrow(err)
         end
-    end 
+    end
 
     swapper.completed_swaps[end] = swaps_complete
     return swapper.to_swap = setdiff(swapper.to_swap, swaps_complete)
 end
-
 
 """
     initial_swaps(fixed_variables::Array{Symbol}, consider_swapping::Array{Symbol})
@@ -233,10 +238,12 @@ function swap(
     optimizer=nothing,
     max_swaps=Inf,
     save_path::Union{Nothing,String}=nothing,
-    kwargs...
+    kwargs...,
 )
     models = make_models(model, optimizer)
-    return swap(models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...)
+    return swap(
+        models, consider_swapping; max_swaps=max_swaps, save_path=save_path, kwargs...
+    )
 end
 
 """
@@ -257,8 +264,8 @@ function swap(
     max_swaps::Real=Inf,
     save_path::Union{Nothing,String}=nothing,
     auto_cpu_limit::Bool=false,
-    shuffle::Bool = false,
-    kwargs...
+    shuffle::Bool=false,
+    kwargs...,
 )
     if auto_cpu_limit
         @warn "auto_cpu_limit sets a cpu time limit based on completed swaps. It may stop potentially feasible solutions from being found"
@@ -273,7 +280,7 @@ function swap(
         consider_swapping=consider_swapping,
         sense=objective_sense(models[1]),
         max_swaps=max_swaps,
-        auto_cpu_limit=auto_cpu_limit
+        auto_cpu_limit=auto_cpu_limit,
     )
     init_swap = Swap(; existing=nothing, new=nothing)
 
@@ -281,7 +288,7 @@ function swap(
     push!(swapper.completed_swaps, [])
     swapper.completed_swaps[end] = [init_swap]
     # Try swapping based on initially fixed
-    try_swapping!(models, swapper, shuffle = shuffle)
+    try_swapping!(models, swapper; shuffle=shuffle)
     if length(unsuccessful_swaps(swapper)) == num_swaps(swapper)
         @warn "All initial swaps have failed with the following termination status $(unique(status_codes(swapper))). \n The problem may be infeasible, try to provide a feasible model"
         return NaN, swapper
@@ -297,8 +304,11 @@ end
 - `swapper`: An already initialised swapper, this can either be clean or it can be partially complete
 """
 function swap(
-    models::Array{Model}, swapper::Swapper; save_path::Union{Nothing,String}=nothing, kwargs...
-)   
+    models::Array{Model},
+    swapper::Swapper;
+    save_path::Union{Nothing,String}=nothing,
+    kwargs...,
+)
     start_time = now()
     # Given swaps which improved initial, try to swap them
     # Only applicable if we are swapping more than one var
@@ -350,12 +360,12 @@ function reduce_to_consider_number(to_consider::Array{VariableRef}; num_to_consi
     @assert thresh != 0 "Thresh is zero, you cannot consider this many values"
     idx_to_consider = findall(x -> thresh ≤ x, consider_vals)
     reduced_to_consider = to_consider[idx_to_consider]
-	@info "Gone from considering $(length(to_consider)) to $(length(reduced_to_consider)) variables"
+    @info "Gone from considering $(length(to_consider)) to $(length(reduced_to_consider)) variables"
     return reduced_to_consider
 end
 
 function _values_above_percentile(values::Vector{Float64}, percentile::Real)
-    thresh = quantile(values, percentile/100)
+    thresh = quantile(values, percentile / 100)
     thresh == 0 && @warn "Threshold is zero, consider a higher percentile"
     return findall(x -> thresh ≤ x, values)
 end
@@ -365,19 +375,21 @@ end
 
 Only consider the percentile largest values in to consider. Note that to_consider shouldn't be rounded yet.
 """
-function reduce_to_consider_percentile(to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0)
+function reduce_to_consider_percentile(
+    to_consider::Array{VariableRef}; percentile::Real, min_to_consider::Int=0
+)
     num_variables = length(to_consider)
     consider_vals = value.(to_consider)
     non_zero_idx = consider_vals .> 0
     to_consider = to_consider[non_zero_idx]
     consider_vals = consider_vals[non_zero_idx]
-    @show all(consider_vals .== consider_vals[1]) 
+    @show all(consider_vals .== consider_vals[1])
     @info "All values are the same, cannot reduce using percentile"
     if all(consider_vals .== consider_vals[1])
-         @info "All values are the same, cannot reduce using percentile"
-         return to_consider
+        @info "All values are the same, cannot reduce using percentile"
+        return to_consider
     end
-    while length(_values_above_percentile(consider_vals, percentile))<min_to_consider
+    while length(_values_above_percentile(consider_vals, percentile)) < min_to_consider
         @info "Too few values above percentile $percentile, reducing percentile by 10"
         percentile -= 10
         if percentile < 0
@@ -388,6 +400,6 @@ function reduce_to_consider_percentile(to_consider::Array{VariableRef}; percenti
     end
     idx_to_consider = _values_above_percentile(consider_vals, percentile)
     reduced_to_consider = to_consider[idx_to_consider]
-	@info "Gone from considering $(num_variables) to $(length(reduced_to_consider)) variables, note: $(num_variables - length(non_zero_idx)) were removed as they were zero"
+    @info "Gone from considering $(num_variables) to $(length(reduced_to_consider)) variables, note: $(num_variables - length(non_zero_idx)) were removed as they were zero"
     return reduced_to_consider
 end

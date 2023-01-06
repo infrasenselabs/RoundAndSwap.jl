@@ -39,7 +39,6 @@ _best_swap = _best_swap[1]
 @test length(swapper.completed_swaps) == 5
 @test num_swaps(swapper) == 6
 
-
 # Test restarting
 _, _short_swapper = swap(model, consider_swapping; max_swaps=3)
 models = make_models(model, HiGHS.Optimizer)
@@ -55,7 +54,6 @@ for f in ("swapper_in_loop.json", "test_swapper.json")
     _swapper = load_swapper(f)
     @test swapper == _swapper
 end
-
 
 # Test Min
 @objective(model, Min, (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + a[1])))
@@ -103,12 +101,10 @@ _best_swap, swapper = swap(model, consider_swapping)
 if VERSION >= v"1.7"
     Random.seed!(42)
     _best_swap, swapper = swap(model, consider_swapping; max_swaps=6, shuffle=true)
-    expected_swaps =  [[Symbol("a[1]"), :d],nothing,
-    [:b, :c],
-    [Symbol("a[1]"), :b],
-    [:c, :d],
-    nothing]
-    for (idx,s) in enumerate(swapper.completed_swaps[2])
+    expected_swaps = [
+        [Symbol("a[1]"), :d], nothing, [:b, :c], [Symbol("a[1]"), :b], [:c, :d], nothing
+    ]
+    for (idx, s) in enumerate(swapper.completed_swaps[2])
         @test s.all_fixed == expected_swaps[idx]
     end
 end
@@ -117,13 +113,15 @@ model = make_model()
 @constraint(model, model[:a][1] ≤ 0.9)
 optimize!(model)
 consider_swapping = [model[:a][1], model[:b], model[:c], model[:d]]
-to_consider= consider_swapping
-@test reduce_to_consider_number(consider_swapping; num_to_consider=3) == [model[:a][1], model[:b], model[:c]]
+to_consider = consider_swapping
+@test reduce_to_consider_number(consider_swapping; num_to_consider=3) ==
+    [model[:a][1], model[:b], model[:c]]
 
-@test reduce_to_consider_percentile(consider_swapping; percentile = 90) == [model[:c]]
-@test reduce_to_consider_percentile(consider_swapping; percentile = 90, min_to_consider=2) == [model[:a][1], model[:c]]
-@test reduce_to_consider_percentile(consider_swapping; percentile = 90, min_to_consider=20) == [model[:a][1], model[:b], model[:c]]
-
+@test reduce_to_consider_percentile(consider_swapping; percentile=90) == [model[:c]]
+@test reduce_to_consider_percentile(consider_swapping; percentile=90, min_to_consider=2) ==
+    [model[:a][1], model[:c]]
+@test reduce_to_consider_percentile(consider_swapping; percentile=90, min_to_consider=20) ==
+    [model[:a][1], model[:b], model[:c]]
 
 @test value(model[:a][1]) == 0.9
 @test value(model[:b]) ≈ 0.1
@@ -143,7 +141,6 @@ optimize!(model)
 consider_swapping = [model[:a][1], model[:b], model[:c], model[:d]]
 @test_throws ErrorException round!(consider_swapping, 1)
 
-
 function make_model_3()
     model = Model(HiGHS.Optimizer)
     set_silent(model)
@@ -154,8 +151,10 @@ function make_model_3()
     @variable(model, 0 ≤ e ≤ 1)
     @variable(model, 0 ≤ f ≤ 1)
 
-    @objective(model, Max, 
-    (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e))+ (5 * (e + a[1]))
+    @objective(
+        model,
+        Max,
+        (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e)) + (5 * (e + a[1]))
     )
 
     @constraint(model, a[1] + b + c + d + e == 3)
@@ -168,7 +167,7 @@ optimize!(model)
 fix(model[:b], 1; force=true)
 fix(model[:c], 1; force=true)
 fix(model[:d], 1; force=true)
-a, b, c, d,e = [model[:a][1]], model[:b], model[:c], model[:d], model[:e]
+a, b, c, d, e = [model[:a][1]], model[:b], model[:c], model[:d], model[:e]
 
 consider_swapping = [a[1], b, c, d, e]
 _best_swap, swapper = swap(model, consider_swapping)
@@ -176,9 +175,9 @@ _best_swap, swapper = swap(model, consider_swapping)
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
 @test _best_swap.obj_value == 20
-@test _best_swap.all_fixed[1] in [Symbol("a[1]"),:c,:e]
-@test _best_swap.all_fixed[2] in [Symbol("a[1]"),:c,:e]
-@test _best_swap.all_fixed[3] in [Symbol("a[1]"),:c,:e]
+@test _best_swap.all_fixed[1] in [Symbol("a[1]"), :c, :e]
+@test _best_swap.all_fixed[2] in [Symbol("a[1]"), :c, :e]
+@test _best_swap.all_fixed[3] in [Symbol("a[1]"), :c, :e]
 
 function make_model_4()
     model = Model(HiGHS.Optimizer)
@@ -190,8 +189,14 @@ function make_model_4()
     @variable(model, 0 ≤ e ≤ 1)
     @variable(model, 0 ≤ f ≤ 1)
 
-    @objective(model, Max, 
-    (a[1] + b) + (2 * (b + c)) + (3 * (c - d)) + (4 * (d + e))+ (5 * (e + f)+(6 * (f + a[1])))
+    @objective(
+        model,
+        Max,
+        (a[1] + b) +
+            (2 * (b + c)) +
+            (3 * (c - d)) +
+            (4 * (d + e)) +
+            (5 * (e + f) + (6 * (f + a[1])))
     )
 
     @constraint(model, a[1] + b + c + d + e + f == 4)
@@ -204,7 +209,7 @@ fix(model[:b], 1; force=true)
 fix(model[:c], 1; force=true)
 fix(model[:d], 1; force=true)
 fix(model[:e], 1; force=true)
-a, b, c, d,e, f = [model[:a][1]], model[:b], model[:c], model[:d], model[:e], model[:f]
+a, b, c, d, e, f = [model[:a][1]], model[:b], model[:c], model[:d], model[:e], model[:f]
 
 consider_swapping = [a[1], b, c, d, e, f]
 _best_swap, swapper = swap(model, consider_swapping)
@@ -212,7 +217,7 @@ _best_swap, swapper = swap(model, consider_swapping)
 @test length(_best_swap) == 1
 _best_swap = _best_swap[1]
 @test _best_swap.obj_value == 32
-@test _best_swap.all_fixed[1] in [Symbol("a[1]"),:c,:e,:f]
-@test _best_swap.all_fixed[2] in [Symbol("a[1]"),:c,:e,:f]
-@test _best_swap.all_fixed[3] in [Symbol("a[1]"),:c,:e,:f]
-@test _best_swap.all_fixed[4] in [Symbol("a[1]"),:c,:e,:f]
+@test _best_swap.all_fixed[1] in [Symbol("a[1]"), :c, :e, :f]
+@test _best_swap.all_fixed[2] in [Symbol("a[1]"), :c, :e, :f]
+@test _best_swap.all_fixed[3] in [Symbol("a[1]"), :c, :e, :f]
+@test _best_swap.all_fixed[4] in [Symbol("a[1]"), :c, :e, :f]
